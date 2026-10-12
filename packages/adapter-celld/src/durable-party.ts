@@ -8,6 +8,29 @@ export interface CelldDurableObjectState {
   readonly storage: DoStorage;
   acceptWebSocket?(ws: WebSocket, tags?: string[]): void;
   getWebSockets?(tag?: string): WebSocket[];
+  getTags?(ws: WebSocket): string[];
+}
+
+export type SinkdDoCapabilities = {
+  acceptWebSocket: boolean;
+  getWebSockets: boolean;
+  getTags: boolean;
+  /** Prefer hibernation acceptWebSocket when both paths exist */
+  hibernation: boolean;
+};
+
+export function probeDoCapabilities(
+  state: CelldDurableObjectState,
+): SinkdDoCapabilities {
+  const acceptWebSocket = typeof state.acceptWebSocket === "function";
+  const getWebSockets = typeof state.getWebSockets === "function";
+  const getTags = typeof state.getTags === "function";
+  return {
+    acceptWebSocket,
+    getWebSockets,
+    getTags,
+    hibernation: acceptWebSocket,
+  };
 }
 
 /**
@@ -17,14 +40,31 @@ export interface CelldDurableObjectState {
 export function createDurableParty(Party: PartyClass) {
   return class SinkdDurableParty {
     readonly #server: Server;
+    readonly #state: CelldDurableObjectState;
     readonly #sockets = new Map<string, WorkersWebSocket>();
+    readonly #caps: SinkdDoCapabilities;
 
     constructor(state: CelldDurableObjectState, env?: unknown) {
+      this.#state = state;
+      this.#caps = probeDoCapabilities(state);
       const name = state.id.name ?? "default";
       this.#server = new Party(name, new DoStorageAdapter(state.storage), env);
     }
 
     async fetch(request: Request): Promise<Response> {
+      const url = new URL(request.url);
+      if (url.searchParams.get("sinkd_caps") === "1") {
+        return Response.json({
+          ok: true,
+          service: "sinkd",
+          room: this.#server.name,
+          capabilities: this.#caps,
+          tagStrategy: this.#caps.getTags
+            ? "native-do-getTags"
+            : "userland-connection-tags",
+        });
+      }
+
       const upgrade = request.headers.get("Upgrade");
       if (upgrade?.toLowerCase() === "websocket") {
         return this.#upgrade(request);
@@ -68,10 +108,7 @@ export function createDurableParty(Party: PartyClass) {
       const client = pair[0];
       const serverSock = pair[1];
 
-      serverSock.accept();
-      this.#sockets.set(id, serverSock);
-
-      await this.#server.attachConnection({
+      const connection = await this.#server.attachConnection({
         id,
         uri: url.toString(),
         request,
@@ -81,26 +118,34 @@ export function createDurableParty(Party: PartyClass) {
         close: (code, reason) => serverSock.close(code, reason),
       });
 
-      serverSock.addEventListener("message", (event) => {
-        const data = event.data;
-        void this.#server.receiveMessage(
-          id,
-          typeof data === "string" ? data : (data as ArrayBuffer),
-        );
-      });
-      serverSock.addEventListener("close", (event) => {
-        this.#sockets.delete(id);
-        void this.#server.detachConnection(
-          id,
-          event.code,
-          event.reason,
-          event.wasClean,
-        );
-      });
-      serverSock.addEventListener("error", (event) => {
-        const conn = this.#server.getConnection(id);
-        if (conn) void this.#server.onError(conn, event);
-      });
+      this.#sockets.set(id, serverSock);
+
+      if (this.#caps.hibernation && this.#state.acceptWebSocket) {
+        // Hibernation path: platform owns the socket; tags from Connection.
+        this.#state.acceptWebSocket(serverSock, [...connection.tags]);
+      } else {
+        serverSock.accept();
+        serverSock.addEventListener("message", (event) => {
+          const data = event.data;
+          void this.#server.receiveMessage(
+            id,
+            typeof data === "string" ? data : (data as ArrayBuffer),
+          );
+        });
+        serverSock.addEventListener("close", (event) => {
+          this.#sockets.delete(id);
+          void this.#server.detachConnection(
+            id,
+            event.code,
+            event.reason,
+            event.wasClean,
+          );
+        });
+        serverSock.addEventListener("error", (event) => {
+          const conn = this.#server.getConnection(id);
+          if (conn) void this.#server.onError(conn, event);
+        });
+      }
 
       return new Response(null, {
         status: 101,

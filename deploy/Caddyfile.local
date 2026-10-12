@@ -1,0 +1,34 @@
+# Lab TLS with Caddy's internal CA (browsers will warn until trusted).
+# Used by: ./scripts/compose.sh -f docker-compose.yml -f compose.tls-local.yml up -d
+
+{
+	local_certs
+}
+
+:443 {
+	tls internal
+	encode gzip
+
+	reverse_proxy celld-a:8080 celld-b:8080 {
+		lb_policy cookie {
+			name sinkd_lb
+			ttl 24h
+		}
+		fail_duration 10s
+		unhealthy_status 5xx
+		transport http {
+			read_timeout 0
+			write_timeout 0
+		}
+	}
+
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+}
+
+:80 {
+	redir https://{host}{uri} permanent
+}

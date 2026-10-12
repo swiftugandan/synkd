@@ -115,6 +115,16 @@ fi
 echo "==> HTTP party probe"
 curl -si "http://127.0.0.1:${PORT}/parties/main/spike?token=dev-token" | head -40
 
+echo "==> DO capability probe (hibernation / getTags)"
+CAPS_JSON="$(curl -sf "http://127.0.0.1:${PORT}/parties/main/spike?token=dev-token&sinkd_caps=1" || true)"
+if [[ -n "$CAPS_JSON" ]]; then
+  echo "$CAPS_JSON"
+  mkdir -p "$ROOT/.sinkd"
+  printf '%s\n' "$CAPS_JSON" > "$ROOT/.sinkd/celld-caps.json"
+else
+  echo "caps probe failed (non-fatal)"
+fi
+
 echo "==> WebSocket broadcast probe"
 cd "$ROOT"
 pnpm --filter @sinkd/runtime exec node ./scripts/ws-smoke.mjs "http://127.0.0.1:${PORT}"
@@ -122,4 +132,5 @@ pnpm --filter @sinkd/runtime exec node ./scripts/ws-smoke.mjs "http://127.0.0.1:
 echo
 echo "Spike OK via $RUNTIME (HTTP + WebSocket)."
 echo "Party URL: http://127.0.0.1:${PORT}/parties/main/<room>?token=dev-token"
+echo "Caps file: $ROOT/.sinkd/celld-caps.json"
 echo "Keep running: SINKD_SPIKE_KEEP=1 pnpm celld:spike"

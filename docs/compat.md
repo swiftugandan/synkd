@@ -1,6 +1,6 @@
 # sinkd ↔ PartyKit ↔ celld compatibility
 
-Last updated: 2026-10-12
+Last updated: 2026-10-12 (celld 0.6.2 caps probed via Podman)
 
 ## Runtime matrix
 
@@ -8,8 +8,8 @@ Last updated: 2026-10-12
 | --- | --- | --- | --- |
 | `/parties/:party/:room` | Yes | Yes | Yes via `routeSinkdRequest` |
 | `onConnect` / `onMessage` / `broadcast` | Yes | Yes | Yes |
-| Connection tags (≤9 / 256) | Native `getTags` | Userland on Connection | Userland (probe native `getTags` on target celld) |
-| Hibernatable WebSockets | Yes | Process-local idle rooms | Yes when DO hibernation APIs present |
+| Connection tags (≤9 / 256) | Native `getTags` | Userland on Connection | **Native** on celld 0.6.2 (`getTags` probed true) |
+| Hibernatable WebSockets | Yes | Process-local idle rooms | **Yes** — `acceptWebSocket` + `getWebSockets` probed true |
 | Per-room SQLite / KV | DO storage | `node:sqlite` files | DO storage via `DoStorageAdapter` |
 | `onAlarm` | Yes | Polled by `AlarmScheduler` (SQLite/memory `setAlarm`) | Delegates to DO `alarm()` |
 | Yjs / y-websocket | y-partykit | `@sinkd/y` `YjsServer` | Same party via `createDurableParty` |
@@ -26,15 +26,25 @@ Last updated: 2026-10-12
 - **Fleet smoke:** `pnpm fleet:smoke` brings up MinIO and runs `celld deploy` on the compose network. MinIO remains unqualified for production durability; use R2/S3/GCS/Azure for real fleets.
 - **Observability:** Node `/healthz` (JSON) and `/metrics` (Prometheus text). Structured logs via `SINKD_LOG_LEVEL` / `SINKD_LOG_JSON=1`.
 
-## Tag probe
-
-Run on a celld-capable host:
+## Capability probe
 
 ```sh
-./scripts/celld-spike.sh
+pnpm celld:spike
+# writes .sinkd/celld-caps.json and prints:
+# GET /parties/main/<room>?token=…&sinkd_caps=1
 ```
 
-Until probed green, sinkd stores tags on the `Connection` object and filters in `getConnections(tag)`.
+| Field | Meaning |
+| --- | --- |
+| `capabilities.acceptWebSocket` | DO hibernation accept path present |
+| `capabilities.getWebSockets` | Platform tag-filtered socket list |
+| `capabilities.getTags` | Native per-socket tag read |
+| `tagStrategy` | `native-do-getTags` vs `userland-connection-tags` |
+
+**Live probe (2026-10-12, celld 0.6.2 / Podman):**
+`acceptWebSocket=true`, `getWebSockets=true`, `getTags=true`, `tagStrategy=native-do-getTags`.
+
+Node runtime still uses userland `Connection.tags`. Adapter uses hibernation `acceptWebSocket` when present. See `deploy/README.md` for TLS fleet ingress.
 
 ## Known deltas vs PartyKit cloud
 

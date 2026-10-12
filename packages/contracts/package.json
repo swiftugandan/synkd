@@ -10,7 +10,9 @@
       "import": "./dist/index.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
@@ -19,5 +21,13 @@
   "devDependencies": {
     "typescript": "^5.9.3",
     "vitest": "^3.2.4"
+  },
+  "description": "Shared URL contracts, limits, and errors for sinkd",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }

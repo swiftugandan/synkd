@@ -4,6 +4,10 @@
 
 ### Added
 
+- Production-shaped Caddy TLS ingress (`deploy/`) + local `tls internal` overlay
+- DO capability probe (`?sinkd_caps=1`) and hibernation `acceptWebSocket` when present
+- Live-verified on celld 0.6.2: `getTags` + hibernation APIs present (`tagStrategy=native-do-getTags`)
+- Publish metadata (MIT, `publishConfig`) on all `@sinkd/*` packages
 - `sinkd dev` hot-reloads party modules and `sinkd.json` (disable with `--no-watch`)
 - `@sinkd/runtime` structured logging (`createLogger`, `SINKD_LOG_LEVEL`, `SINKD_LOG_JSON=1`)
 - Node alarm scheduler that polls room storage and invokes `Server.onAlarm`

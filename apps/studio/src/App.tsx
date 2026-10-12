@@ -326,6 +326,15 @@ export function App() {
           ? "celld via Podman (pnpm celld:spike / SINKD_SPIKE_KEEP=1)"
           : "Node runtime locally"}{" "}
         · host {host}
+        {" · "}
+        <a
+          href="https://celld.dev/docs/"
+          target="_blank"
+          rel="noreferrer"
+          title="Fleet TLS ingress lives in deploy/README.md"
+        >
+          fleet docs
+        </a>
       </p>
     </div>
   );

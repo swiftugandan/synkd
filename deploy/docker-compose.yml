@@ -47,8 +47,13 @@ services:
 
   caddy:
     image: caddy:2
+    environment:
+      SINKD_SITE: ${SINKD_SITE:-localhost}
+      SINKD_ACME_EMAIL: ${SINKD_ACME_EMAIL:-}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
     ports:
       - "443:443"
       - "80:80"
@@ -60,3 +65,7 @@ services:
 
 networks:
   sinkd:
+
+volumes:
+  caddy-data:
+  caddy-config:

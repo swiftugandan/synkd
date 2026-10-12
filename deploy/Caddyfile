@@ -1,5 +1,42 @@
-:80 {
-  reverse_proxy celld-a:8080 celld-b:8080 {
-    lb_policy cookie
-  }
+# Production-shaped ingress for a celld fleet.
+# Set SINKD_SITE to your public hostname (enables automatic HTTPS via Let's Encrypt).
+# Local labs: use Caddyfile.local via compose.tls-local.yml (tls internal).
+
+{
+	# Optional: email for ACME registration
+	# email {$SINKD_ACME_EMAIL}
+}
+
+{$SINKD_SITE:localhost} {
+	encode gzip
+
+	# WebSocket + HTTP to the celld public listeners (cookie stickiness).
+	reverse_proxy celld-a:8080 celld-b:8080 {
+		lb_policy cookie {
+			name sinkd_lb
+			# sticky long enough for typical session reconnect windows
+			ttl 24h
+		}
+		# Prefer the node that still has the room warm when possible.
+		fail_duration 10s
+		unhealthy_status 5xx
+		transport http {
+			# celld may hold long-lived WS; disable idle kill on the proxy hop
+			read_timeout 0
+			write_timeout 0
+		}
+	}
+
+	header {
+		# HSTS only meaningful once SINKD_SITE is a real HTTPS host
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+
+	log {
+		output stdout
+		format console
+	}
 }

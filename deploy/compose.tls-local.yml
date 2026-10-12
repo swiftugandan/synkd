@@ -1,0 +1,15 @@
+# Local HTTPS front-door (Caddy internal CA).
+#   ./scripts/compose.sh -f docker-compose.yml -f compose.minio.yml -f compose.tls-local.yml up -d
+#
+# Then open https://localhost/ (trust the internal CA or proceed past the warning).
+
+services:
+  caddy:
+    volumes:
+      - ./Caddyfile.local:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
+volumes:
+  caddy-data:
+  caddy-config:

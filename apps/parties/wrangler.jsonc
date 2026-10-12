@@ -23,12 +23,7 @@
       "tag": "v1",
       "new_sqlite_classes": [
         "ChatDO",
-        "PresenceDO"
-      ]
-    },
-    {
-      "tag": "v2",
-      "new_sqlite_classes": [
+        "PresenceDO",
         "DocsDO"
       ]
     }

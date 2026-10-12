@@ -76,7 +76,7 @@ PartyKit packaged Durable Object rooms behind `/parties/:party/:room` and `party
 
 - [x] Local runtime without celld? → Yes: `@sinkd/runtime` (Node).
 - [x] Depend on `partyserver` npm for Node? → No — Cloudflare DO base; sinkd reimplements compatible surface in `@sinkd/server`.
-- [ ] Exact celld `getTags` support — probe on Linux/ARM; Node runtime implements tags in userland.
+- [x] Exact celld `getTags` support — probed **true** on celld 0.6.2 via Podman (`?sinkd_caps=1`); Node still userland tags.
 
 ## Confidence self-assessment
 

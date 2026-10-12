@@ -1,0 +1,76 @@
+# Fleet deploy
+
+PartyKit-shaped rooms on a **celld** fleet with cookie-sticky TLS ingress.
+
+## Topology
+
+```
+Browser (wss) → Caddy :443 → celld-a / celld-b :8080 → Durable Object room
+                              ↕ internal :8081
+                         object store (R2/S3/GCS/Azure)
+```
+
+## Production (qualified object store)
+
+```sh
+export CELLD_BUCKET=s3://your-bucket
+export AWS_ACCESS_KEY_ID=…
+export AWS_SECRET_ACCESS_KEY=…
+export AWS_REGION=auto
+export SINKD_SITE=rooms.example.com   # public DNS → this host
+
+# Build + push worker artifact
+pnpm --filter @sinkd/cli exec tsx src/bin.ts deploy --config apps/parties/sinkd.json
+CELLD_BUCKET="$CELLD_BUCKET" pnpm celld:spike   # runs `celld deploy` in-container
+
+# Fleet + Caddy (Let's Encrypt via SINKD_SITE)
+SINKD_SITE=rooms.example.com ./scripts/compose.sh up -d
+```
+
+Point DNS A/AAAA for `SINKD_SITE` at the Caddy host. Caddy terminates TLS and load-balances to both celld nodes with a sticky cookie (`sinkd_lb`).
+
+## Local lab (MinIO + internal TLS)
+
+MinIO is **not** celld-qualified for production durability — labs only.
+
+```sh
+export CELLD_BUCKET=s3://sinkd-cells
+export AWS_ACCESS_KEY_ID=sinkd
+export AWS_SECRET_ACCESS_KEY=sinkdsecret
+export AWS_REGION=us-east-1
+export S3_ENDPOINT=http://minio:9000
+
+./scripts/compose.sh \
+  -f docker-compose.yml \
+  -f compose.minio.yml \
+  -f compose.tls-local.yml \
+  up -d
+
+# after MinIO is healthy:
+CELLD_BUCKET=s3://sinkd-cells \
+  AWS_ACCESS_KEY_ID=sinkd AWS_SECRET_ACCESS_KEY=sinkdsecret \
+  AWS_REGION=us-east-1 S3_ENDPOINT=http://minio:9000 \
+  pnpm fleet:smoke
+```
+
+Open `https://localhost/` (Caddy `tls internal`). Studio can target `?backend=celld` once a public listener is mapped to `:9876` via `pnpm celld:spike`.
+
+## Caps probe
+
+After a celld listener is up:
+
+```sh
+curl -s "http://127.0.0.1:9876/parties/main/probe?token=dev-token&sinkd_caps=1"
+```
+
+Reports whether hibernation `acceptWebSocket` / `getWebSockets` exist on the DO state (native tag routing vs sinkd userland tags).
+
+## Files
+
+| File | Role |
+| --- | --- |
+| `docker-compose.yml` | celld-a/b + Caddy |
+| `Caddyfile` | Public HTTPS (`SINKD_SITE`) |
+| `Caddyfile.local` | Lab HTTPS (`tls internal`) |
+| `compose.tls-local.yml` | Mount local Caddyfile + data vols |
+| `compose.minio.yml` | Experimental object store |
