@@ -26,13 +26,19 @@ services:
     image: docker.io/minio/mc:latest
     depends_on:
       - minio
-    entrypoint: >
-      /bin/sh -c "
-      sleep 2;
-      mc alias set local http://minio:9000 $${MINIO_ROOT_USER:-sinkd} $${MINIO_ROOT_PASSWORD:-sinkdsecret};
-      mc mb --ignore-existing local/sinkd-cells;
-      exit 0;
-      "
+    restart: "no"
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -e
+        i=0
+        until mc alias set local http://minio:9000 "$$MINIO_ROOT_USER" "$$MINIO_ROOT_PASSWORD"; do
+          i=$$((i+1))
+          [ "$$i" -gt 30 ] && exit 1
+          sleep 1
+        done
+        mc mb --ignore-existing local/sinkd-cells
+        mc ls local
     environment:
       MINIO_ROOT_USER: ${AWS_ACCESS_KEY_ID:-sinkd}
       MINIO_ROOT_PASSWORD: ${AWS_SECRET_ACCESS_KEY:-sinkdsecret}

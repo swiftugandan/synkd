@@ -65,10 +65,15 @@ Override the runtime with `CONTAINER_CLI=podman` or `CONTAINER_CLI=docker`.
 Local MinIO overlay (experimental — not celld-qualified for production):
 
 ```sh
-pnpm fleet:minio
+pnpm fleet:smoke   # MinIO up + celld deploy on compose network
+pnpm fleet:minio   # compose up only
 ```
 
 Studio can target Node (`?backend=node`) or celld (`?backend=celld` on `:9876`).
+
+```sh
+pnpm test:e2e      # Playwright two-tab chat
+```
 
 Compatibility matrix: `docs/compat.md`.
 

@@ -23,7 +23,9 @@
     "studio:build": "pnpm --filter @sinkd/studio build",
     "celld:spike": "bash ./scripts/celld-spike.sh",
     "ws:smoke": "pnpm --filter @sinkd/runtime exec node ./scripts/ws-smoke.mjs",
-    "fleet:minio": "SINKD_MINIO=1 bash ./scripts/compose.sh up -d"
+    "fleet:minio": "SINKD_MINIO=1 bash ./scripts/compose.sh up -d",
+    "fleet:smoke": "bash ./scripts/fleet-smoke.sh",
+    "test:e2e": "pnpm --filter @sinkd/studio run test:e2e"
   },
   "devDependencies": {
     "concurrently": "^9.2.1",
