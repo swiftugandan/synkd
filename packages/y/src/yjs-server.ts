@@ -25,10 +25,14 @@ const DOC_KEY = "ydoc";
 export class YjsServer extends Server {
   /** When true (default), persist encoded ydoc state to room storage. */
   static persist = true;
+  /** Debounce window for durable writes (ms). */
+  static persistDebounceMs = 250;
 
   readonly doc = new Y.Doc();
   readonly awareness: Awareness;
   #controlled = new WeakMap<object, Set<number>>();
+  #persistTimer: ReturnType<typeof setTimeout> | null = null;
+  #persistChain: Promise<void> = Promise.resolve();
 
   constructor(name: string, storage: ConstructorParameters<typeof Server>[1], env?: unknown) {
     super(name, storage, env);
@@ -46,7 +50,7 @@ export class YjsServer extends Server {
     this.doc.on("update", (update: Uint8Array, origin: unknown) => {
       this.#broadcastSyncUpdate(update, origin);
       if ((this.constructor as typeof YjsServer).persist) {
-        void this.#persistDoc();
+        this.#schedulePersist();
       }
     });
 
@@ -159,6 +163,19 @@ export class YjsServer extends Server {
       if (c === origin) continue;
       c.send(payload);
     }
+  }
+
+  #schedulePersist(): void {
+    const ms = (this.constructor as typeof YjsServer).persistDebounceMs;
+    if (this.#persistTimer) clearTimeout(this.#persistTimer);
+    this.#persistTimer = setTimeout(() => {
+      this.#persistTimer = null;
+      this.#persistChain = this.#persistChain
+        .then(() => this.#persistDoc())
+        .catch(() => {
+          // persistence is best-effort; next update retries
+        });
+    }, ms);
   }
 
   async #persistDoc(): Promise<void> {

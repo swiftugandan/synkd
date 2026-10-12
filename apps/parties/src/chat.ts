@@ -74,6 +74,8 @@ export class Chat extends Server<PartyEnv> {
         at: Date.now(),
       }),
     );
+    // connections map already dropped this socket; reschedule or clear alarm
+    void this.#scheduleHeartbeat();
   }
 
   override async onMessage(

@@ -14,8 +14,8 @@ describe("YjsServer", () => {
     const a = new YjsServer("pad-1", storage);
     await a.ensureStarted();
     a.doc.getText("t").insert(0, "hello");
-    // allow microtask persist
-    await new Promise((r) => setTimeout(r, 10));
+    // allow debounce persist
+    await new Promise((r) => setTimeout(r, 300));
     const stored = await storage.get<number[]>("ydoc");
     expect(stored?.length).toBeGreaterThan(0);
 
