@@ -2,9 +2,9 @@
 
 ## Trust model (v1)
 
-synkd v1 is a **single-fleet** service. One Node process or one celld fleet is one trust domain.
+synkd v1 is a **single-fleet** service. One Node process or one Durable Objects fleet is one trust domain.
 
-Do not put mutually untrusted tenants on the same fleet. That limit comes from the celld platform model. synkd does not fake isolation with soft tenancy.
+Do not put mutually untrusted tenants on the same fleet. That limit comes from the Durable Objects platform model. synkd does not fake isolation with soft tenancy.
 
 ## Tokens
 
@@ -23,13 +23,13 @@ Rules:
 
 ## Network
 
-- Terminate TLS at the edge. See [Deploy with TLS](./deploy).
+- Terminate TLS at the edge. See [Deploy](./deploy).
 - Restrict Console and `/v1` (VPN, private network, or IP allowlist).
 - Set `auth.origins` if you need an Origin allowlist for browsers.
 
 ## What we do not claim
 
-- Hostile multi-tenant isolation inside one celld fleet
+- Hostile multi-tenant isolation inside one Durable Objects fleet
 - A hosted synkd control plane or preview hosts
 - Encryption of room storage beyond what your disk or object store provides
 

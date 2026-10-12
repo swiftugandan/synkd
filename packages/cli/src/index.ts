@@ -18,6 +18,20 @@ import {
 import { loadParties } from "./load-parties.js";
 import { watchPartySources } from "./watch-parties.js";
 import { registerCelldCommands } from "./celld-cmd.js";
+import {
+  deployToBucket,
+  prepareWorkerConfig,
+  startDurableHost,
+  stopDurableHost,
+} from "./durable.js";
+
+type UpOpts = {
+  config: string;
+  root?: string;
+  port?: number;
+  watch?: boolean;
+  durable?: boolean;
+};
 
 export async function runCli(argv: string[]): Promise<void> {
   const program = new Command();
@@ -27,6 +41,7 @@ export async function runCli(argv: string[]): Promise<void> {
     .version("0.1.0");
 
   registerCelldCommands(program);
+
   program
     .command("init")
     .argument("[dir]", "project directory", ".")
@@ -35,36 +50,109 @@ export async function runCli(argv: string[]): Promise<void> {
       initProject(resolve(dir), opts.name);
     });
 
+  const upAction = async (opts: UpOpts) => {
+    const root = resolve(opts.root ?? process.cwd());
+    const configPath = opts.root
+      ? resolveConfigPath(root)
+      : resolveConfigPath(resolve(opts.config));
+
+    if (opts.durable) {
+      startDurableHost(dirname(configPath));
+      return;
+    }
+
+    await runDev(configPath, {
+      port: opts.port,
+      watch: opts.watch !== false,
+    });
+  };
+
   program
-    .command("dev")
+    .command("up")
+    .description("Start the local host (Node, or Durable Objects with --durable)")
     .option("-c, --config <path>", "path to synkd.json", "synkd.json")
     .option("--root <dir>", "project root (contains synkd.json)")
     .option("-p, --port <port>", "port", (v) => Number(v))
     .option("--no-watch", "disable hot reload of party modules")
-    .action(
-      async (opts: {
-        config: string;
-        root?: string;
-        port?: number;
-        watch?: boolean;
-      }) => {
-        const root = resolve(opts.root ?? process.cwd());
-        const configPath = opts.root
-          ? resolveConfigPath(root)
-          : resolveConfigPath(resolve(opts.config));
-        await runDev(configPath, {
-          port: opts.port,
-          watch: opts.watch !== false,
-        });
-      },
-    );
+    .option(
+      "--durable",
+      "run a local Durable Objects host (Podman/Docker) instead of Node",
+    )
+    .action(upAction);
+
+  program
+    .command("dev")
+    .description("Alias for synkd up (Node runtime)")
+    .option("-c, --config <path>", "path to synkd.json", "synkd.json")
+    .option("--root <dir>", "project root (contains synkd.json)")
+    .option("-p, --port <port>", "port", (v) => Number(v))
+    .option("--no-watch", "disable hot reload of party modules")
+    .option(
+      "--durable",
+      "run a local Durable Objects host (Podman/Docker) instead of Node",
+    )
+    .action(upAction);
+
+  program
+    .command("down")
+    .description("Stop the local Durable Objects host started by synkd up --durable")
+    .action(() => {
+      stopDurableHost();
+    });
 
   program
     .command("deploy")
+    .description(
+      "Prepare and push the worker to an object-store bucket (Durable Objects fleet)",
+    )
     .option("-c, --config <path>", "path to synkd.json", "synkd.json")
-    .action((opts: { config: string }) => {
-      deploy(resolveConfigPath(resolve(opts.config)));
-    });
+    .option("--root <dir>", "project root")
+    .option(
+      "--start-fleet",
+      "after push, start the compose fleet (Durable Object nodes + Caddy)",
+    )
+    .option(
+      "--prepare-only",
+      "only write wrangler.jsonc; do not push to a bucket",
+    )
+    .action(
+      (opts: {
+        config: string;
+        root?: string;
+        startFleet?: boolean;
+        prepareOnly?: boolean;
+      }) => {
+        const configPath = opts.root
+          ? resolveConfigPath(resolve(opts.root))
+          : resolveConfigPath(resolve(opts.config));
+        const project = dirname(configPath);
+
+        if (opts.prepareOnly || !process.env.CELLD_BUCKET) {
+          const wranglerPath = prepareWorkerConfig(project);
+          console.log(`Wrote ${wranglerPath}`);
+          if (opts.prepareOnly) {
+            console.log(`Worker entry: ${join(project, "src/worker.ts")}`);
+            return;
+          }
+          console.log(`
+Prepared Durable Objects worker config.
+
+Local Durable Objects host:
+  synkd up --durable --root ${project}
+
+Push to an object store and start a fleet:
+  export CELLD_BUCKET=s3://your-bucket
+  export AWS_ACCESS_KEY_ID=…
+  export AWS_SECRET_ACCESS_KEY=…
+  export AWS_REGION=auto
+  synkd deploy --root ${project} --start-fleet
+`);
+          return;
+        }
+
+        deployToBucket(project, { startFleet: Boolean(opts.startFleet) });
+      },
+    );
 
   program
     .command("doctor")
@@ -105,9 +193,11 @@ function initProject(dir: string, name: string): void {
         private: true,
         type: "module",
         scripts: {
-          dev: "synkd dev",
+          up: "synkd up",
+          down: "synkd down",
           deploy: "synkd deploy",
           doctor: "synkd doctor",
+          dev: "synkd up",
         },
         dependencies: synkdDependencySpecs(),
       },
@@ -195,12 +285,14 @@ export default {
 
 \`\`\`sh
 synkd doctor --root .
-synkd dev --root .
+synkd up --root .
 \`\`\`
 
 Guest token: \`dev-token\`. Admin token: \`dev-admin\`.
 
-\`synkd dev\` links \`@synkd/*\` from the CLI install when packages are not on the registry yet.
+\`synkd up\` links \`@synkd/*\` from the CLI install when packages are not on the registry yet.
+
+Local Durable Objects: \`synkd up --durable --root .\`. Stop with \`synkd down\`.
 `,
   );
 
@@ -210,8 +302,8 @@ Guest token: \`dev-token\`. Admin token: \`dev-admin\`.
     console.log(`  linked:  ${linked.join(", ")}`);
   }
   console.log(`  synkd doctor --root ${dir}`);
-  console.log(`  synkd dev --root ${dir}`);
-  console.log(`  synkd celld info          # Durable Objects host (optional)`);
+  console.log(`  synkd up --root ${dir}`);
+  console.log(`  synkd up --durable --root ${dir}   # optional Durable Objects host`);
 }
 
 async function runDev(
@@ -266,7 +358,6 @@ async function runDev(
       tenantId: config.tenantId ?? "default",
     });
 
-    // Close first to free the port (fixed port → would EADDRINUSE otherwise).
     const previous = runtime;
     runtime = undefined;
     if (previous) await previous.close();
@@ -291,6 +382,7 @@ async function runDev(
           ? `  watch:   on (party sources + synkd.json)`
           : `  watch:   off`,
       );
+      console.log(`  studio:  http://127.0.0.1:5173/?backend=node`);
       if (config.auth?.token) {
         console.log(
           `  guest:   ?token=${config.auth.token} (or Authorization: Bearer …)`,
@@ -333,36 +425,6 @@ async function runDev(
   };
   process.on("SIGINT", () => void shutdown());
   process.on("SIGTERM", () => void shutdown());
-}
-
-function deploy(configPath: string): void {
-  if (!existsSync(configPath)) {
-    throw new Error(`Missing config: ${configPath}`);
-  }
-  const root = dirname(configPath);
-  const config = loadSynkdConfig(configPath);
-  const wranglerPath = join(root, "wrangler.jsonc");
-  writeFileSync(wranglerPath, toWranglerJsonc(config));
-  console.log(`Wrote ${wranglerPath}`);
-  console.log(`
-Prepared celld worker config (wrangler.jsonc + src/worker.ts).
-
-What is celld? Workers + Durable Objects on your machines — https://celld.dev
-  synkd celld info
-
-Local Durable Object host (Podman/Docker):
-  synkd celld dev --root ${root}
-  # or from this monorepo: pnpm celld:dev
-
-Push to an object-store bucket, then start the fleet:
-  export CELLD_BUCKET=s3://your-bucket
-  synkd celld deploy --root ${root}
-  ./scripts/compose.sh up -d
-
-Native celld binary (Linux/ARM64):
-  curl -fsSL https://celld.dev/install.sh | sh
-  celld deploy ${root} --bucket "$CELLD_BUCKET"
-`);
 }
 
 function doctor(configPath: string): void {
@@ -432,27 +494,17 @@ function doctor(configPath: string): void {
   checks.push({
     ok: true,
     label: "local runtime",
-    detail: "@synkd/runtime (Node)",
+    detail: "synkd up → @synkd/runtime (Node)",
   });
-
-  let celldDetail =
-    "not on PATH — use Podman/Docker (pnpm celld:dev) or install from https://celld.dev";
-  try {
-    const out = execSync("celld --version", {
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "pipe"],
-    }).trim();
-    celldDetail = out || "found";
-  } catch {
-    // expected on Darwin without a native binary
-  }
-  checks.push({ ok: true, label: "celld binary", detail: celldDetail });
 
   let containerDetail = "neither podman nor docker usable";
   let containerOk = false;
   for (const cli of ["podman", "docker"] as const) {
     try {
-      execSync(`${cli} info`, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+      execSync(`${cli} info`, {
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "pipe"],
+      });
       containerDetail = cli;
       containerOk = true;
       break;
@@ -462,10 +514,10 @@ function doctor(configPath: string): void {
   }
   checks.push({
     ok: true,
-    label: "celld host runtime",
+    label: "durable host runtime",
     detail: containerOk
-      ? `${containerDetail} — pnpm celld:dev / synkd celld info`
-      : `${containerDetail} — Node-only DX is fine; for Durable Objects install Podman or see synkd celld info`,
+      ? `${containerDetail} — synkd up --durable`
+      : `${containerDetail} — Node-only DX is fine; install Podman for synkd up --durable`,
   });
 
   for (const check of checks) {

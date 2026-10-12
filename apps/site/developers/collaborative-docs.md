@@ -14,7 +14,7 @@ export class Docs extends YjsServer {
 
 Register it as the `docs` party in `synkd.json` (see `apps/parties`).
 
-On celld, wrap the same class with `createDurableParty(Docs)`.
+On a Durable Objects host, wrap the same class with `createDurableParty(Docs)`.
 
 ## Client
 
@@ -47,5 +47,5 @@ Open the same link in a second tab to confirm sync.
 
 ## What to do next
 
-- Read [Compatibility](./compatibility) for Node versus celld behaviour
+- Read [Compatibility](./compatibility) for Node versus Durable Objects behaviour
 - See package details in [Packages](./packages)

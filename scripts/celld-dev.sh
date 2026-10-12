@@ -55,17 +55,13 @@ celld_probe "$PORT" "$TOKEN"
 
 cat <<EOF
 
-celld is running (local Durable Object host).
+Durable Objects host is running.
 
   Party URL:  http://127.0.0.1:${PORT}/parties/main/<room>?token=${TOKEN}
-  Studio:     http://127.0.0.1:5173/?backend=celld
+  Studio:     http://127.0.0.1:5173/?backend=durable
   Caps file:  $ROOT/.synkd/celld-caps.json
   Logs:       $RUNTIME logs -f $NAME
-  Stop:       pnpm celld:stop
-
-What is celld? Open-source Workers + Durable Objects runtime
-(https://celld.dev). synkd parties run on Node for daily DX, or on
-celld when you need Durable Object storage / multi-node fleets.
+  Stop:       synkd down
 EOF
 
 if [[ "${CELLD_ATTACH:-0}" == "1" ]]; then

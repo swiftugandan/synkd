@@ -5,7 +5,7 @@ titleTemplate: self-hosted realtime rooms
 hero:
   name: synkd
   text: Realtime rooms you run yourself
-  tagline: PartyKit-compatible WebSocket rooms on Node or a celld fleet. Build with partysocket. Operate with a Console and clear health signals.
+  tagline: PartyKit-shaped WebSocket rooms on infrastructure you control. Build with partysocket. Operate with a Console and clear health signals.
   actions:
     - theme: brand
       text: Developer docs
@@ -15,17 +15,17 @@ hero:
       link: /operators/
 features:
   - title: Familiar party URLs
-    details: Keep /parties/:party/:room and partysocket clients. Move off hosted PartyKit without rewriting your apps.
-  - title: Local Node, fleet when ready
-    details: Develop on the Node runtime. Run the same party code on celld for Durable Objects — locally or as a TLS fleet.
-  - title: Clear operator tools
-    details: Use the Console and /v1 control API for rooms, health, metrics, and forced hibernation.
+    details: Keep /parties/:party/:room and partysocket clients. Leave hosted PartyKit without rewriting your apps.
+  - title: Develop locally, ship a fleet
+    details: Run synkd up on Node. Deploy the same party code to a Durable Objects fleet with TLS at the edge.
+  - title: Operator tools that match the runtime
+    details: Use the Console and /v1 for rooms, health, metrics, and forced hibernation.
 ---
 
 <div class="audience-split">
   <a class="panel" href="/developers/">
     <h2>For developers</h2>
-    <p>Write parties, connect browsers, and add Yjs pads. Start on your laptop in minutes.</p>
+    <p>Write parties, connect browsers, and add Yjs pads. Start on your laptop.</p>
     <span class="next">Go to developer docs</span>
   </a>
   <a class="panel" href="/operators/">
@@ -35,19 +35,19 @@ features:
   </a>
 </div>
 
-<p class="gds-note">Need the shape of the system first? Read the <a href="/architecture/">architecture diagrams</a> — context, packages, request path, trust, control plane, and fleet topology.</p>
+<p class="gds-note">Need the shape of the system first? Read the <a href="/architecture/">architecture diagrams</a>: context, packages, request path, trust, control plane, and fleet topology.</p>
 
 ## What synkd is
 
 synkd runs sticky realtime rooms. Each room is an actor with durable storage. Clients join over WebSockets using the same URL shape as PartyKit.
 
-You host the process or fleet. There is no synkd cloud control plane in v1.
+You host the process or fleet. There is no synkd cloud in v1.
 
 ## What you need
 
-- Node.js 22 or later to develop and run the Node runtime
-- pnpm to install this monorepo
-- Optional: Podman or Docker (or a native [celld](https://celld.dev) binary) for Durable Object hosting — see [Run on celld](/operators/celld)
+- Node.js 22 or later
+- pnpm for this monorepo
+- Podman or Docker only if you use local Durable Objects or a production fleet ([Deploy](/operators/deploy))
 
 ## Try it locally
 
@@ -55,18 +55,24 @@ You host the process or fleet. There is no synkd cloud control plane in v1.
 pnpm install
 pnpm build
 pnpm doctor
-pnpm dev:all
+pnpm up
 ```
+
+Or run the full lab stack with `pnpm dev:all`.
 
 Then open:
 
 - Studio (guests): [http://127.0.0.1:5173](http://127.0.0.1:5173)
-- Console (operators): [http://127.0.0.1:5174](http://127.0.0.1:5174) — admin token `dev-admin`
+- Console (operators): [http://127.0.0.1:5174](http://127.0.0.1:5174) with admin token `dev-admin`
+
+## Configuration
+
+Each project has a **`synkd.json`** file. It names the parties, auth tokens, and listen port. The CLI reads that file for `up`, `doctor`, and `deploy`. There is no YAML config in v1.
 
 ## Choose your path
 
-If you are writing party code or a client app, read [Get started for developers](/developers/get-started). To scaffold a project, use the [CLI](/developers/cli).
+Writing party code or a client? Start with [Get started for developers](/developers/get-started). To scaffold a project, use the [CLI](/developers/cli).
 
-If you are installing, securing, or monitoring a fleet, read [Get started for operators](/operators/get-started).
+Installing or securing a fleet? Start with [Get started for operators](/operators/get-started).
 
-If you need Durable Objects (local or multi-node), read [Run on celld](/operators/celld) — what celld is, `pnpm celld:dev`, and production deploy.
+Need Durable Objects locally or in production? Read [Deploy](/operators/deploy). Use `synkd up --durable` on your laptop and `synkd deploy` for a fleet.

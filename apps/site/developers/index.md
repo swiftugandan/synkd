@@ -10,13 +10,13 @@ These pages are for people who write parties and client apps.
 - how to connect with partysocket
 - how to add a Yjs collaborative pad
 - which packages to import
-- what works on Node versus celld
+- what works on Node versus a Durable Objects host
 
 ## Start here
 
 1. [Get started](./get-started) — example stack or a new CLI project
-2. [CLI](./cli) — `init`, `doctor`, `dev`, `deploy`
-3. [Write a party](./write-a-party) — Server API and config
+2. [CLI](./cli) — `init`, `doctor`, `up`, `down`, `deploy`
+3. [Write a party](./write-a-party) — Server API and `synkd.json`
 4. [Connect clients](./connect-clients) — partysocket and auth tokens
 
 ## Related

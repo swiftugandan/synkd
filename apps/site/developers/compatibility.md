@@ -1,14 +1,14 @@
 # Compatibility
 
-synkd aims to keep PartyKit-shaped party code portable. Some platform features differ between Node and celld.
+synkd aims to keep PartyKit-shaped party code portable. Some platform features differ between Node and a Durable Objects host.
 
 ## Runtime matrix
 
-| Capability | Node runtime | celld adapter |
+| Capability | Node (`synkd up`) | Durable Objects (`synkd up --durable` / deploy) |
 | --- | --- | --- |
 | `/parties/:party/:room` | Yes | Yes |
 | `onConnect` / `onMessage` / `broadcast` | Yes | Yes |
-| Connection tags | Userland on `Connection` | Native `getTags` on celld 0.6.2 |
+| Connection tags | Userland on `Connection` | Native `getTags` when the host supports it |
 | Hibernatable WebSockets | Idle empty rooms unload | Platform `acceptWebSocket` |
 | Close 1012 on move or reload | Yes | Yes (ownership move) |
 | Per-room storage | SQLite files | Durable Object storage |
@@ -20,14 +20,13 @@ synkd aims to keep PartyKit-shaped party code portable. Some platform features d
 
 ## Platform notes
 
-- Darwin x86_64 has no celld prebuild. Use the Node runtime locally. Run fleets in Linux containers with Podman (preferred) or Docker.
-- On Darwin arm64 and Linux you can install celld from [celld.dev](https://celld.dev/docs/).
-- One celld fleet is one trust domain. Do not co-host hostile tenants on the same fleet. See [Security](/operators/security).
+- Prefer Node for everyday local work. Use Podman or Docker for `synkd up --durable` and production fleets.
+- One Durable Objects fleet is one trust domain. Do not co-host hostile tenants on the same fleet. See [Security](/operators/security).
 
 ## Probe live capabilities
 
 ```sh
-pnpm celld:dev
+synkd up --durable
 ```
 
 Then:
@@ -36,7 +35,7 @@ Then:
 curl -s "http://127.0.0.1:9876/parties/main/healthz?token=dev-token&synkd_caps=1"
 ```
 
-Setup guide: [Run on celld](/operators/celld).
+Setup guide: [Deploy](/operators/deploy).
 
 Look for `acceptWebSocket`, `getWebSockets`, and `getTags` in the response.
 
@@ -50,4 +49,4 @@ Look for `acceptWebSocket`, `getWebSockets`, and `getTags` in the response.
 ## What to do next
 
 - [Deploy with TLS](/operators/deploy) when you are ready for a fleet
-- [Run on celld](/operators/celld) for local host and fleet setup
+- [Deploy](/operators/deploy) for local Durable Objects and fleet setup

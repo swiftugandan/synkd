@@ -14,11 +14,11 @@ Install from this monorepo with pnpm workspaces. Published names use the `@synkd
 | `@synkd/config` | Load `synkd.json` |
 | `@synkd/runtime` | Embed the Node HTTP and WebSocket host |
 | `@synkd/control` | Mount the `/v1` operator API |
-| `@synkd/adapter-celld` | Durable Object host for celld |
+| `@synkd/adapter-celld` | Durable Objects host adapter |
 | `@synkd/cli` | `synkd init`, `dev`, `deploy`, `doctor` |
 | `@synkd/ui` | Shared brand tokens for Studio and Console |
 
-Until packages are on the public registry, run the CLI from this monorepo. `synkd init` and `synkd dev` link `@synkd/*` into your project from the CLI install. Details: [CLI](./cli).
+Until packages are on the public registry, run the CLI from this monorepo. `synkd init` and `synkd up` link `@synkd/*` into your project from the CLI install. Details: [CLI](./cli).
 
 ## Apps in this repo
 

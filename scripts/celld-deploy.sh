@@ -63,7 +63,8 @@ Deployed worker artifact to $CELLD_BUCKET.
 Start a multi-node fleet with TLS ingress:
 
   export SYNKD_SITE=rooms.example.com
-  ./scripts/compose.sh up -d
+  synkd deploy --start-fleet
+  # or: ./scripts/compose.sh up -d
 
 Docs: apps/site/operators/deploy.md
 EOF

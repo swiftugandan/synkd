@@ -5,8 +5,15 @@ import { Room } from "./Room";
 
 const DEFAULT_TOKEN = "dev-token";
 
-type Backend = "node" | "celld";
+type Backend = "node" | "durable";
 type Surface = "chat" | "pad";
+
+function parseBackend(value: string | null): Backend | undefined {
+  if (value === "node") return "node";
+  // celld kept as URL alias for one release
+  if (value === "durable" || value === "celld") return "durable";
+  return undefined;
+}
 
 function randomRoom(): string {
   const adjectives = ["brine", "coral", "drift", "kelp", "tidal", "abyss"];
@@ -24,21 +31,20 @@ function readQuery(): {
 } {
   if (typeof window === "undefined") return {};
   const q = new URLSearchParams(window.location.search);
-  const backend = q.get("backend");
   const surface = q.get("surface");
   return {
     room: q.get("room") ?? undefined,
     name: q.get("name") ?? undefined,
-    backend: backend === "celld" || backend === "node" ? backend : undefined,
+    backend: parseBackend(q.get("backend")),
     surface: surface === "pad" || surface === "chat" ? surface : undefined,
   };
 }
 
 function studioHost(backend: Backend): string {
   if (typeof window === "undefined") {
-    return backend === "celld" ? "127.0.0.1:9876" : "127.0.0.1:8787";
+    return backend === "durable" ? "127.0.0.1:9876" : "127.0.0.1:8787";
   }
-  if (backend === "celld") return "127.0.0.1:9876";
+  if (backend === "durable") return "127.0.0.1:9876";
   const { host, port } = window.location;
   // Vite (517x) and Playwright preview (417x) proxy /parties → runtime
   if (port.startsWith("517") || port.startsWith("417")) return host;
@@ -121,9 +127,7 @@ export function App() {
         <nav className="top-links" aria-label="References">
           <a href="http://127.0.0.1:5180/">Docs</a>
           <a href="http://127.0.0.1:5174/">Console</a>
-          <a href="https://celld.dev/docs/" target="_blank" rel="noreferrer">
-            celld
-          </a>
+          <a href="http://127.0.0.1:5180/operators/deploy">Deploy</a>
         </nav>
       </header>
 
@@ -249,19 +253,19 @@ export function App() {
                   <input
                     type="radio"
                     name="backend"
-                    checked={backend === "celld"}
+                    checked={backend === "durable"}
                     onChange={() => {
-                      setBackend("celld");
+                      setBackend("durable");
                       syncUrl({
                         room,
-                        backend: "celld",
+                        backend: "durable",
                         name,
                         joined,
                         surface,
                       });
                     }}
                   />
-                  celld <span className="muted">:9876</span>
+                  Durable <span className="muted">:9876</span>
                 </label>
               </fieldset>
               <label>
@@ -321,9 +325,9 @@ export function App() {
       </main>
 
       <p className="foot">
-        {backend === "celld"
-          ? "celld via Podman/Docker (pnpm celld:dev · pnpm celld:stop)"
-          : "Node runtime locally"}{" "}
+        {backend === "durable"
+          ? "Durable Objects host (synkd up --durable · synkd down)"
+          : "Node runtime (synkd up)"}{" "}
         · host {host}
         {" · "}
         <a href="http://127.0.0.1:5174/">console</a>

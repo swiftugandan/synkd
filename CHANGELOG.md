@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+## 0.1.4 — 2026-10-12
+
+### Changed
+
+- Public CLI surface is `init` / `doctor` / `up` / `down` / `deploy`. Durable Objects hosting is `synkd up --durable`, not a separate `celld` command tree
+- Studio uses `?backend=durable` (`celld` still accepted as an alias)
+
+### Docs
+
+- Marketing and guides rewritten in plain GDS English for the four-verb CLI
+- Documented `synkd.json` as the project config (JSON; no YAML in v1)
+- Operator Deploy page covers local Durable Objects and production fleets
+
 ## 0.1.3 — 2026-10-12
 
 ### Changed

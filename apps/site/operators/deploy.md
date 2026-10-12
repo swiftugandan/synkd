@@ -1,13 +1,47 @@
-# Deploy with TLS
+# Deploy
 
-Production fleets use celld behind Caddy. Caddy terminates HTTPS and sticky-balances to celld nodes.
+Develop on Node with `synkd up`. Ship the same party classes to a Durable Objects fleet with TLS at the edge. `synkd deploy` is the production command.
 
-## Topology
+## Commands
+
+| Command | What it does |
+| --- | --- |
+| `synkd up` | Starts the local Node runtime |
+| `synkd up --durable` | Starts a local Durable Objects host on port 9876 |
+| `synkd down` | Stops the local Durable Objects host |
+| `synkd deploy` | Writes worker config; with `CELLD_BUCKET` set, pushes the artifact |
+| `synkd deploy --start-fleet` | Pushes the artifact, then starts the compose fleet |
+
+## Local Durable Objects
+
+Use this when you need Durable Object storage or hibernation APIs on your laptop. You need Podman or Docker.
+
+```sh
+synkd up --durable --root apps/parties
+```
+
+Open Studio with `?backend=durable`:
+
+[http://127.0.0.1:5173/?backend=durable](http://127.0.0.1:5173/?backend=durable)
+
+Stop the host:
+
+```sh
+synkd down
+```
+
+Check platform capabilities:
+
+```sh
+curl -s "http://127.0.0.1:9876/parties/main/healthz?token=dev-token&synkd_caps=1"
+```
+
+## Production topology
 
 ```
 Browser (wss)
   → Caddy :443
-  → celld-a / celld-b :8080
+  → durable nodes :8080
   → Durable Object room
        ↕ object store (R2 / S3 / GCS / Azure)
 ```
@@ -15,10 +49,9 @@ Browser (wss)
 ## Production checklist
 
 1. Use a qualified object store. Do not use MinIO for production durability.
-2. Set DNS A/AAAA for your public hostname to the Caddy host.
+2. Point DNS for your public hostname at the Caddy host.
 3. Export store credentials and `SYNKD_SITE`.
-4. Build and deploy the worker artifact.
-5. Start compose with Caddy.
+4. Deploy the worker and start the fleet.
 
 ```sh
 export CELLD_BUCKET=s3://your-bucket
@@ -27,15 +60,10 @@ export AWS_SECRET_ACCESS_KEY=…
 export AWS_REGION=auto
 export SYNKD_SITE=rooms.example.com
 
-pnpm --filter @synkd/cli exec tsx src/bin.ts deploy \
-  --config apps/parties/synkd.json
-
-CELLD_BUCKET="$CELLD_BUCKET" pnpm celld:deploy
-
-SYNKD_SITE=rooms.example.com pnpm fleet:up
+synkd deploy --root apps/parties --start-fleet
 ```
 
-Caddy uses a sticky cookie named `synkd_lb`. New to celld? Start with [Run on celld](./celld).
+Caddy sets a sticky cookie named `synkd_lb`.
 
 ## Local lab with MinIO
 
@@ -55,27 +83,22 @@ export S3_ENDPOINT=http://minio:9000
   up -d
 ```
 
-Open `https://localhost/` (Caddy `tls internal`).
-
-Smoke:
-
-```sh
-pnpm fleet:smoke
-```
+Open `https://localhost/` (Caddy uses `tls internal`). Run `pnpm fleet:smoke` to check the wiring.
 
 ## Compose files
 
 | File | Role |
 | --- | --- |
-| `deploy/docker-compose.yml` | celld nodes and Caddy |
+| `deploy/docker-compose.yml` | Durable Object nodes and Caddy |
 | `deploy/Caddyfile` | Public HTTPS via `SYNKD_SITE` |
 | `deploy/Caddyfile.local` | Lab HTTPS with internal TLS |
 | `deploy/compose.minio.yml` | Lab object store |
 | `deploy/compose.tls-local.yml` | Local Caddy mounts |
 
-More detail lives in the repo at `deploy/README.md`.
+More detail lives in `deploy/README.md`.
 
 ## What to do next
 
-- [Run on celld](./celld)
+- [Get started](./get-started)
 - [Security](./security)
+- [Developer compatibility](/developers/compatibility)

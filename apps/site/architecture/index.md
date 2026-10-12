@@ -13,7 +13,7 @@ Each diagram is an SVG that uses design tokens. They stay readable in greyscale 
 | [Request path](./request-path) | What happens to one join |
 | [Trust boundaries](./trust-boundaries) | Where trust starts and stops |
 | [Control plane](./control-plane) | Guest traffic versus operator `/v1` |
-| [Fleet topology](./fleet-topology) | Caddy, celld nodes, object store |
+| [Fleet topology](./fleet-topology) | Caddy, Durable Object nodes, object store |
 
 ## How to read the diagrams
 
@@ -24,5 +24,5 @@ Each diagram is an SVG that uses design tokens. They stay readable in greyscale 
 ## Related docs
 
 - Developers: [Compatibility](/developers/compatibility)
-- Operators: [Security](/operators/security), [Deploy with TLS](/operators/deploy)
+- Operators: [Security](/operators/security), [Deploy](/operators/deploy)
 - Deep notes in the repo: `SAD.md`

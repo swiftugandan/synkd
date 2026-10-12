@@ -15,11 +15,11 @@ pnpm doctor
 ## Start the runtime and Console
 
 ```sh
-pnpm dev
+pnpm up
 pnpm dev:console
 ```
 
-Or use `pnpm dev:all` to also start Studio.
+Or use `pnpm dev:all` to also start Studio and the docs site.
 
 ## Sign in to the Console
 
@@ -52,14 +52,20 @@ curl -s -H "Authorization: Bearer dev-admin" \
 
 Projects created with `synkd init` use the same defaults. Change them before any shared or public deploy. See [Security](./security).
 
-## Optional: Durable Objects via celld
+## Optional: local Durable Objects
 
-Everyday DX uses the Node runtime above. For a local Durable Object host (or a production fleet), see [Run on celld](./celld) — including what celld is and `pnpm celld:dev`.
+```sh
+synkd up --durable
+# Studio: http://127.0.0.1:5173/?backend=durable
+synkd down
+```
+
+Production fleets: [Deploy](./deploy).
 
 ## What to do next
 
 - [Configure a fleet](./configure)
 - [Use the Console](./console)
 - [Monitor health](./monitor)
-- [Run on celld](./celld)
+- [Deploy](./deploy)
 - Developers: [CLI](/developers/cli)

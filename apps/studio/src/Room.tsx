@@ -35,7 +35,7 @@ interface RoomProps {
   room: string;
   token: string;
   displayName?: string;
-  backend?: "node" | "celld";
+  backend?: "node" | "durable";
   onLeave: () => void;
 }
 

@@ -34,7 +34,7 @@ Register the export in `synkd.json`:
 }
 ```
 
-`className` is used when you deploy to celld (Durable Object class name).
+`className` is used when you deploy to a Durable Objects fleet (class name binding).
 
 ## Room URL
 
@@ -61,7 +61,7 @@ Enable idle unload with `static options = { hibernate: true }` when the party ca
 
 ## Hot reload
 
-`synkd dev` (and `pnpm dev` in this repo) watches party source files and reloads them. Active sockets close with code **1012** so clients can reconnect.
+`synkd up` (and `pnpm up` in this repo) watches party source files and reloads them. Active sockets close with code **1012** so clients can reconnect.
 
 Disable watching with `--no-watch` if you need a fixed process for debugging.
 

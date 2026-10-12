@@ -8,15 +8,14 @@ These pages are for people who install, secure, and run synkd fleets.
 - how to set guest and admin tokens
 - how to use the Console
 - how to read health and Prometheus metrics
-- what celld is and how to run parties on it
-- how to put TLS in front of a celld fleet
+- how to deploy a Durable Objects fleet with TLS
 - what the security model allows and does not allow
 
 ## Start here
 
-1. [Get started](./get-started) — run runtime and Console
+1. [Get started](./get-started) — `synkd up` and Console
 2. [Configure a fleet](./configure) — `synkd.json` and environment
-3. [Run on celld](./celld) — Durable Objects locally or as a fleet
+3. [Deploy](./deploy) — local Durable Objects and production fleets
 4. [Security](./security) — trust model and tokens
 
 ## Related

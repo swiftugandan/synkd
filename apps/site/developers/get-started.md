@@ -37,7 +37,7 @@ pnpm dev:all
 Or start processes separately:
 
 ```sh
-pnpm dev
+pnpm up
 pnpm dev:studio
 pnpm dev:console
 pnpm dev:site
@@ -47,7 +47,7 @@ pnpm dev:site
 
 1. Open Studio.
 2. Choose Chat or Pad.
-3. Keep Runtime set to Node.
+3. Keep Runtime set to **Node** (or **Durable** after `synkd up --durable`).
 4. Enter a room id and select **Enter room**.
 
 The guest token is `dev-token`. The admin token for Console is `dev-admin`. Both are in `apps/parties/synkd.json`.
@@ -67,14 +67,15 @@ pnpm install
 pnpm build
 pnpm --filter @synkd/cli exec tsx src/bin.ts init ./my-rooms --name my-rooms
 pnpm --filter @synkd/cli exec tsx src/bin.ts doctor --root ./my-rooms
-pnpm --filter @synkd/cli exec tsx src/bin.ts dev --root ./my-rooms
+pnpm --filter @synkd/cli exec tsx src/bin.ts up --root ./my-rooms
 ```
 
-The CLI links `@synkd/*` packages from this monorepo so `dev` works before those packages are on npm. Full command reference: [CLI](./cli).
+The CLI links `@synkd/*` packages from this monorepo so `up` works before those packages are on npm. Full command reference: [CLI](./cli).
 
 ## What to do next
 
-- [CLI](./cli) — `init`, `doctor`, `dev`, `deploy`
+- [CLI](./cli) — `init`, `doctor`, `up`, `down`, `deploy`
 - [Write a party](./write-a-party)
 - [Connect clients](./connect-clients)
 - [Operator get started](/operators/get-started) for Console and `/v1`
+- [Deploy](/operators/deploy) for Durable Objects and fleets

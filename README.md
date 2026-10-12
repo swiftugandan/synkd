@@ -1,12 +1,12 @@
 # synkd
 
-Self-hosted PartyKit-compatible realtime rooms on Node and celld.
+Self-hosted PartyKit-compatible realtime rooms. Develop on Node. Deploy the same parties to a Durable Objects fleet.
 
-## Documentation site
+## Documentation
 
 Published docs: [https://swiftugandan.github.io/synkd/](https://swiftugandan.github.io/synkd/)
 
-Local:
+Local site:
 
 ```sh
 pnpm install
@@ -17,22 +17,20 @@ Open [http://127.0.0.1:5180](http://127.0.0.1:5180).
 
 | Audience | Start here |
 | --- | --- |
-| Developers | [Developer docs](./apps/site/developers/index.md) → site `/developers/` |
-| Operators | [Operator docs](./apps/site/operators/index.md) → site `/operators/` |
-| Architecture | [Architecture](./apps/site/architecture/index.md) → site `/architecture/` (SVG diagrams) |
-
-Canonical browsing path is the VitePress site. Markdown under `apps/site/` is the source.
+| Developers | [Developer docs](./apps/site/developers/index.md) |
+| Operators | [Operator docs](./apps/site/operators/index.md) |
+| Architecture | [Architecture](./apps/site/architecture/index.md) |
 
 ## Quick start
-
-Example stack in this repo:
 
 ```sh
 pnpm install
 pnpm build
 pnpm doctor
-pnpm dev:all
+pnpm up
 ```
+
+Use `pnpm dev:all` to also start Studio, Console, and the docs site.
 
 | App | URL |
 | --- | --- |
@@ -41,17 +39,33 @@ pnpm dev:all
 | Console | http://127.0.0.1:5174 (admin: `dev-admin`) |
 | Runtime | http://127.0.0.1:8787 |
 
-Guest token: `dev-token`. Config: `apps/parties/synkd.json`.
+Guest token: `dev-token`. Config file: `apps/parties/synkd.json` (JSON, not YAML).
 
-New project with the CLI:
+### New project
 
 ```sh
 pnpm --filter @synkd/cli exec tsx src/bin.ts init ./my-rooms --name my-rooms
 pnpm --filter @synkd/cli exec tsx src/bin.ts doctor --root ./my-rooms
-pnpm --filter @synkd/cli exec tsx src/bin.ts dev --root ./my-rooms
+pnpm --filter @synkd/cli exec tsx src/bin.ts up --root ./my-rooms
 ```
 
-The CLI links `@synkd/*` from this monorepo so `dev` works before npm publish. Guide: [CLI](./apps/site/developers/cli.md).
+Public CLI verbs: `init`, `doctor`, `up`, `down`, `deploy`. Guide: [CLI](./apps/site/developers/cli.md).
+
+## Ship a fleet
+
+```sh
+export CELLD_BUCKET=s3://your-bucket
+export AWS_ACCESS_KEY_ID=…
+export AWS_SECRET_ACCESS_KEY=…
+export AWS_REGION=auto
+export SYNKD_SITE=rooms.example.com
+
+synkd deploy --root apps/parties --start-fleet
+```
+
+Local Durable Objects (optional): `synkd up --durable`, then Studio `?backend=durable`, then `synkd down`.
+
+Details: [Deploy](./apps/site/operators/deploy.md).
 
 ## Packages
 
@@ -61,34 +75,16 @@ The CLI links `@synkd/*` from this monorepo so `dev` works before npm publish. G
 | `@synkd/runtime` | Node host, SQLite rooms, `/v1` |
 | `@synkd/control` | Operator control API |
 | `@synkd/auth` | Guest and admin gates |
-| `@synkd/adapter-celld` | celld Durable Object host |
-| `@synkd/cli` | `synkd init` / `dev` / `deploy` / `celld` / `doctor` |
+| `@synkd/adapter-celld` | Durable Objects host adapter |
+| `@synkd/cli` | `synkd init` / `up` / `down` / `deploy` / `doctor` |
 | `@synkd/y` | Yjs / y-websocket party base |
-| `@synkd/site` | Marketing + docs site |
+| `@synkd/site` | Marketing and docs site |
 | `@synkd/studio` | Guest demo |
 | `@synkd/console` | Operator Console |
 
-Full package list: site → [Packages](./apps/site/developers/packages.md).
-
-## celld (Durable Objects host)
-
-[celld](https://celld.dev) runs Workers + Durable Objects on your machines. synkd parties use Node by default; switch to celld when you need DO storage or a multi-node fleet.
-
-```sh
-pnpm celld:dev          # local celld on :9876 (Podman/Docker)
-# Studio: http://127.0.0.1:5173/?backend=celld
-pnpm celld:stop
-
-export CELLD_BUCKET=s3://your-bucket
-pnpm celld:deploy       # push worker artifact
-pnpm fleet:up           # celld nodes + Caddy
-```
-
-Guide: [Run on celld](./apps/site/operators/celld.md) · `synkd celld info`
-
 ## Ops pointers
 
-- Health: `GET /healthz`, Prometheus: `GET /metrics`
-- Admin: `GET /v1/*` (Bearer admin token)
-- TLS fleets: [`deploy/README.md`](./deploy/README.md) and site → [Deploy](./apps/site/operators/deploy.md)
-- Security model: [`SECURITY.md`](./SECURITY.md) and site → [Security](./apps/site/operators/security.md)
+- Health: `GET /healthz`. Metrics: `GET /metrics`.
+- Admin: `GET /v1/*` with a Bearer admin token.
+- TLS fleets: [`deploy/README.md`](./deploy/README.md) and [Deploy](./apps/site/operators/deploy.md).
+- Security: [`SECURITY.md`](./SECURITY.md) and [Security](./apps/site/operators/security.md).

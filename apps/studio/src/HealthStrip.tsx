@@ -11,13 +11,15 @@ interface HealthPayload {
   };
 }
 
+type Backend = "node" | "durable";
+
 interface HealthStripProps {
-  backend: "node" | "celld";
+  backend: Backend;
 }
 
-function healthUrl(backend: "node" | "celld"): string {
-  // celld has no root healthz — probe a party route (CORS + 200 JSON).
-  if (backend === "celld") {
+function healthUrl(backend: Backend): string {
+  // Durable host has no root healthz — probe a party route (CORS + 200 JSON).
+  if (backend === "durable") {
     return "http://127.0.0.1:9876/parties/main/studio-health?token=dev-token";
   }
   // Same-origin proxy in Vite / Playwright Studio for Node
@@ -47,7 +49,6 @@ export function HealthStrip({ backend }: HealthStripProps) {
         if (contentType.includes("application/json")) {
           const body = (await res.json()) as HealthPayload;
           if (!cancelled) {
-            // Party probe returns { ok, room, ... }; Node /healthz returns fleet stats.
             setHealth({ ok: body.ok !== false, ...body });
             setError(null);
           }
@@ -58,7 +59,9 @@ export function HealthStrip({ backend }: HealthStripProps) {
       } catch {
         if (!cancelled) {
           setHealth(null);
-          setError(backend === "celld" ? "celld offline" : "runtime offline");
+          setError(
+            backend === "durable" ? "durable host offline" : "runtime offline",
+          );
         }
       }
     };
@@ -82,8 +85,8 @@ export function HealthStrip({ backend }: HealthStripProps) {
       <span className="health-dot" aria-hidden="true" />
       <span className="health-label">
         {error ??
-          (backend === "celld"
-            ? "celld reachable"
+          (backend === "durable"
+            ? "durable host reachable"
             : `rooms ${health?.rooms ?? 0} · sockets ${health?.connections ?? 0} · msgs ${health?.metrics?.messages ?? 0}`)}
       </span>
     </div>
