@@ -1,5 +1,5 @@
 {
-  "name": "@sinkd/runtime",
+  "name": "@synkd/runtime",
   "version": "0.1.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -20,8 +20,9 @@
     "smoke": "node ./scripts/ws-smoke.mjs"
   },
   "dependencies": {
-    "@sinkd/contracts": "workspace:*",
-    "@sinkd/server": "workspace:*",
+    "@synkd/contracts": "workspace:*",
+    "@synkd/control": "workspace:*",
+    "@synkd/server": "workspace:*",
     "nanoid": "^5.1.9",
     "ws": "^8.18.3"
   },

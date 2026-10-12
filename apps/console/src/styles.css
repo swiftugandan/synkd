@@ -1,0 +1,348 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--synkd-font-body);
+  color: var(--synkd-foam);
+  background:
+    radial-gradient(1100px 640px at 75% -15%, rgba(42, 212, 192, 0.14), transparent 55%),
+    radial-gradient(800px 480px at 5% 110%, rgba(18, 52, 71, 0.85), transparent 50%),
+    linear-gradient(165deg, #061821 0%, var(--synkd-abyss) 45%, #02080c 100%);
+  background-attachment: fixed;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--synkd-signal);
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.15rem clamp(1.25rem, 4vw, 3rem);
+}
+
+.top-links {
+  display: flex;
+  gap: 1.1rem;
+  font-size: 0.9rem;
+}
+
+.top-links a {
+  color: var(--synkd-foam-dim);
+  text-decoration: none;
+}
+
+.top-links a:hover {
+  color: var(--synkd-foam);
+}
+
+.hero {
+  padding: clamp(1.5rem, 4vw, 3rem) clamp(1.25rem, 4vw, 3rem) 2rem;
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.hero-lede {
+  max-width: 36ch;
+  color: var(--synkd-foam-dim);
+  font-size: 1.08rem;
+  margin: 0.85rem 0 1.5rem;
+}
+
+.cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: center;
+}
+
+.btn {
+  border: 1px solid var(--synkd-line);
+  background: transparent;
+  color: var(--synkd-foam);
+  border-radius: 0.35rem;
+  padding: 0.65rem 1rem;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+.btn-primary {
+  background: var(--synkd-signal);
+  color: #032019;
+  border-color: transparent;
+  font-weight: 600;
+}
+
+.btn-ghost:hover {
+  border-color: rgba(42, 212, 192, 0.35);
+}
+
+.sections {
+  display: grid;
+  gap: 2.75rem;
+  padding: 0 clamp(1.25rem, 4vw, 3rem) 3rem;
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.section h2 {
+  font-family: var(--synkd-font-display);
+  font-size: 1.55rem;
+  letter-spacing: -0.03em;
+  margin: 0 0 0.35rem;
+}
+
+.section p.lede {
+  margin: 0 0 1rem;
+  color: var(--synkd-foam-dim);
+  max-width: 48ch;
+}
+
+.gate {
+  max-width: 28rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.gate label {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  color: var(--synkd-foam-dim);
+}
+
+.field {
+  width: 100%;
+  border: 1px solid var(--synkd-line);
+  background: rgba(4, 16, 22, 0.75);
+  color: var(--synkd-foam);
+  border-radius: 0.35rem;
+  padding: 0.7rem 0.8rem;
+}
+
+.table-wrap {
+  overflow: auto;
+  border-top: 1px solid var(--synkd-line);
+  border-bottom: 1px solid var(--synkd-line);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 0.7rem 0.55rem;
+  border-bottom: 1px solid var(--synkd-line);
+  vertical-align: middle;
+}
+
+th {
+  font-family: var(--synkd-font-mono);
+  font-size: 0.72rem;
+  color: var(--synkd-foam-dim);
+  font-weight: 500;
+}
+
+.mono {
+  font-family: var(--synkd-font-mono);
+  font-size: 0.8rem;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.85rem 1.25rem;
+}
+
+.metric dt {
+  font-family: var(--synkd-font-mono);
+  font-size: 0.68rem;
+  color: var(--synkd-foam-dim);
+}
+
+.metric dd {
+  margin: 0.15rem 0 0;
+  font-size: 1.35rem;
+  font-family: var(--synkd-font-display);
+  letter-spacing: -0.03em;
+}
+
+.banner {
+  margin-top: 1rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid rgba(255, 176, 32, 0.35);
+  background: rgba(255, 176, 32, 0.08);
+  font-size: 0.88rem;
+}
+
+.foot {
+  text-align: center;
+  padding: 0 1rem 2rem;
+  font-family: var(--synkd-font-mono);
+  font-size: 0.72rem;
+  color: var(--synkd-foam-dim);
+}
+
+.pill {
+  display: inline-block;
+  font-family: var(--synkd-font-mono);
+  font-size: 0.68rem;
+  padding: 0.15rem 0.45rem;
+  border: 1px solid var(--synkd-line);
+  color: var(--synkd-foam-dim);
+  margin-right: 0.25rem;
+}
+
+.row-actions {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.panel {
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 clamp(1.25rem, 4vw, 3rem) 2.75rem;
+}
+
+.panel h2 {
+  font-family: var(--synkd-font-display);
+  font-size: 1.55rem;
+  letter-spacing: -0.03em;
+  margin: 0 0 0.65rem;
+}
+
+.muted {
+  color: var(--synkd-foam-dim);
+  max-width: 52ch;
+}
+
+.err {
+  color: var(--synkd-danger);
+}
+
+.login {
+  display: grid;
+  gap: 0.75rem;
+  max-width: 22rem;
+  margin-top: 1rem;
+}
+
+.login label {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  color: var(--synkd-foam-dim);
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.85rem 1.25rem;
+  margin: 0;
+}
+
+.facts dt {
+  font-family: var(--synkd-font-mono);
+  font-size: 0.68rem;
+  color: var(--synkd-foam-dim);
+}
+
+.facts dd {
+  margin: 0.15rem 0 0;
+  font-size: 1.25rem;
+  font-family: var(--synkd-font-display);
+  letter-spacing: -0.03em;
+}
+
+.caps {
+  margin: 1rem 0 0;
+  font-family: var(--synkd-font-mono);
+  font-size: 0.75rem;
+  color: var(--synkd-foam-dim);
+}
+
+.rooms {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.rooms th,
+.rooms td {
+  text-align: left;
+  padding: 0.7rem 0.55rem;
+  border-bottom: 1px solid var(--synkd-line);
+}
+
+.rooms th {
+  font-family: var(--synkd-font-mono);
+  font-size: 0.72rem;
+  color: var(--synkd-foam-dim);
+  font-weight: 500;
+}
+
+.rooms .actions {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.metrics-preview {
+  margin-top: 1rem;
+  padding: 0.85rem 1rem;
+  overflow: auto;
+  border: 1px solid var(--synkd-line);
+  background: rgba(4, 16, 22, 0.55);
+  font-family: var(--synkd-font-mono);
+  font-size: 0.72rem;
+  color: var(--synkd-foam-dim);
+}
+
+.linkish {
+  background: none;
+  border: none;
+  color: var(--synkd-foam-dim);
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
+}
+
+.linkish:hover {
+  color: var(--synkd-foam);
+}

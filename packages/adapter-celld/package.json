@@ -1,5 +1,5 @@
 {
-  "name": "@sinkd/adapter-celld",
+  "name": "@synkd/adapter-celld",
   "version": "0.1.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -19,8 +19,8 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@sinkd/contracts": "workspace:*",
-    "@sinkd/server": "workspace:*",
+    "@synkd/contracts": "workspace:*",
+    "@synkd/server": "workspace:*",
     "nanoid": "^5.1.9"
   },
   "devDependencies": {

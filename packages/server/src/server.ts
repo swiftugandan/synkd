@@ -1,4 +1,4 @@
-import { normalizeTags } from "@sinkd/contracts";
+import { normalizeTags } from "@synkd/contracts";
 import { Connection } from "./connection.js";
 import type { RoomStorage } from "./storage.js";
 import type {

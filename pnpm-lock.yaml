@@ -18,21 +18,52 @@ importers:
         specifier: ^3.2.4
         version: 3.2.7(@types/node@24.19.2)(tsx@4.23.15)
 
+  apps/console:
+    dependencies:
+      '@synkd/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      react:
+        specifier: ^19.2.0
+        version: 19.3.0
+      react-dom:
+        specifier: ^19.2.0
+        version: 19.3.0(react@19.3.0)
+    devDependencies:
+      '@playwright/test':
+        specifier: ^1.56.0
+        version: 1.64.0
+      '@types/react':
+        specifier: ^19.2.2
+        version: 19.3.0
+      '@types/react-dom':
+        specifier: ^19.2.1
+        version: 19.3.0(@types/react@19.3.0)
+      '@vitejs/plugin-react':
+        specifier: ^5.0.4
+        version: 5.2.0(vite@7.3.7(@types/node@24.19.2)(tsx@4.23.15))
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vite:
+        specifier: ^7.1.10
+        version: 7.3.7(@types/node@24.19.2)(tsx@4.23.15)
+
   apps/parties:
     dependencies:
-      '@sinkd/adapter-celld':
+      '@synkd/adapter-celld':
         specifier: workspace:*
         version: link:../../packages/adapter-celld
-      '@sinkd/auth':
+      '@synkd/auth':
         specifier: workspace:*
         version: link:../../packages/auth
-      '@sinkd/cli':
+      '@synkd/cli':
         specifier: workspace:*
         version: link:../../packages/cli
-      '@sinkd/server':
+      '@synkd/server':
         specifier: workspace:*
         version: link:../../packages/server
-      '@sinkd/y':
+      '@synkd/y':
         specifier: workspace:*
         version: link:../../packages/y
     devDependencies:
@@ -42,7 +73,7 @@ importers:
 
   apps/studio:
     dependencies:
-      '@sinkd/client':
+      '@synkd/client':
         specifier: workspace:*
         version: link:../../packages/client
       partysocket:
@@ -82,10 +113,10 @@ importers:
 
   packages/adapter-celld:
     dependencies:
-      '@sinkd/contracts':
+      '@synkd/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@sinkd/server':
+      '@synkd/server':
         specifier: workspace:*
         version: link:../server
       nanoid:
@@ -104,7 +135,7 @@ importers:
 
   packages/auth:
     dependencies:
-      '@sinkd/contracts':
+      '@synkd/contracts':
         specifier: workspace:*
         version: link:../contracts
       jose:
@@ -120,16 +151,16 @@ importers:
 
   packages/cli:
     dependencies:
-      '@sinkd/auth':
+      '@synkd/auth':
         specifier: workspace:*
         version: link:../auth
-      '@sinkd/config':
+      '@synkd/config':
         specifier: workspace:*
         version: link:../config
-      '@sinkd/runtime':
+      '@synkd/runtime':
         specifier: workspace:*
         version: link:../runtime
-      '@sinkd/server':
+      '@synkd/server':
         specifier: workspace:*
         version: link:../server
       commander:
@@ -151,7 +182,7 @@ importers:
 
   packages/client:
     dependencies:
-      '@sinkd/contracts':
+      '@synkd/contracts':
         specifier: workspace:*
         version: link:../contracts
       partysocket:
@@ -167,7 +198,7 @@ importers:
 
   packages/config:
     dependencies:
-      '@sinkd/server':
+      '@synkd/server':
         specifier: workspace:*
         version: link:../server
     devDependencies:
@@ -190,12 +221,31 @@ importers:
         specifier: ^3.2.4
         version: 3.2.7(@types/node@24.19.2)(tsx@4.23.15)
 
-  packages/runtime:
+  packages/control:
     dependencies:
-      '@sinkd/contracts':
+      '@synkd/auth':
+        specifier: workspace:*
+        version: link:../auth
+      '@synkd/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@sinkd/server':
+    devDependencies:
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.7(@types/node@24.19.2)(tsx@4.23.15)
+
+  packages/runtime:
+    dependencies:
+      '@synkd/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@synkd/control':
+        specifier: workspace:*
+        version: link:../control
+      '@synkd/server':
         specifier: workspace:*
         version: link:../server
       nanoid:
@@ -220,7 +270,7 @@ importers:
 
   packages/server:
     dependencies:
-      '@sinkd/contracts':
+      '@synkd/contracts':
         specifier: workspace:*
         version: link:../contracts
       nanoid:
@@ -234,9 +284,28 @@ importers:
         specifier: ^3.2.4
         version: 3.2.7(@types/node@24.19.2)(tsx@4.23.15)
 
+  packages/ui:
+    dependencies:
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.3.0(react@19.3.0)
+    devDependencies:
+      '@types/react':
+        specifier: ^19.2.2
+        version: 19.3.0
+      react:
+        specifier: ^19.2.0
+        version: 19.3.0
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.7(@types/node@24.19.2)(tsx@4.23.15)
+
   packages/y:
     dependencies:
-      '@sinkd/server':
+      '@synkd/server':
         specifier: workspace:*
         version: link:../server
       lib0:

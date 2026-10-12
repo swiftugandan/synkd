@@ -1,15 +1,15 @@
 import { watch, type FSWatcher } from "node:fs";
 import { dirname, resolve } from "node:path";
-import type { SinkdConfig } from "@sinkd/config";
+import type { SynkdConfig } from "@synkd/config";
 
 const WATCH_EXT = /\.(ts|tsx|js|mjs|cjs|json)$/;
 
 /**
- * Watch party entry directories + sinkd.json; debounced callback on change.
+ * Watch party entry directories + synkd.json; debounced callback on change.
  * Returns a dispose function.
  */
 export function watchPartySources(
-  config: SinkdConfig,
+  config: SynkdConfig,
   root: string,
   configPath: string,
   onChange: (reason: string) => void,
@@ -35,8 +35,8 @@ export function watchPartySources(
           return;
         }
         const name = filename.toString();
-        if (name.includes("node_modules") || name.includes(".sinkd")) return;
-        if (!WATCH_EXT.test(name) && name !== "sinkd.json") return;
+        if (name.includes("node_modules") || name.includes(".synkd")) return;
+        if (!WATCH_EXT.test(name) && name !== "synkd.json") return;
         kick(name);
       });
       watchers.push(w);
@@ -48,7 +48,7 @@ export function watchPartySources(
   try {
     watchers.push(
       watch(configPath, () => {
-        kick("sinkd.json");
+        kick("synkd.json");
       }),
     );
   } catch {

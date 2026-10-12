@@ -1,19 +1,19 @@
-# sinkd ↔ PartyKit ↔ celld compatibility
+# synkd ↔ PartyKit ↔ celld compatibility
 
 Last updated: 2026-10-12 (celld 0.6.2 caps probed via Podman)
 
 ## Runtime matrix
 
-| Capability | PartyServer / CF DO | sinkd Node (`@sinkd/runtime`) | sinkd on celld (`@sinkd/adapter-celld`) |
+| Capability | PartyServer / CF DO | synkd Node (`@synkd/runtime`) | synkd on celld (`@synkd/adapter-celld`) |
 | --- | --- | --- | --- |
-| `/parties/:party/:room` | Yes | Yes | Yes via `routeSinkdRequest` |
+| `/parties/:party/:room` | Yes | Yes | Yes via `routeSynkdRequest` |
 | `onConnect` / `onMessage` / `broadcast` | Yes | Yes | Yes |
 | Connection tags (≤9 / 256) | Native `getTags` | Userland on Connection | **Native** on celld 0.6.2 (`getTags` probed true) |
 | Hibernatable WebSockets | Yes | Idle empty rooms unload (`roomIdleMs`, close SQLite) | **Yes** — `acceptWebSocket` + `getWebSockets` probed true |
 | Close 1012 on move/restart | Ownership move | Runtime `close()` / hot-reload drain | Ownership move |
 | Per-room SQLite / KV | DO storage | `node:sqlite` files | DO storage via `DoStorageAdapter` |
 | `onAlarm` | Yes | Polled by `AlarmScheduler` (SQLite/memory `setAlarm`) | Delegates to DO `alarm()` |
-| Yjs / y-websocket | y-partykit | `@sinkd/y` `YjsServer` | Same party via `createDurableParty` |
+| Yjs / y-websocket | y-partykit | `@synkd/y` `YjsServer` | Same party via `createDurableParty` |
 | `request.cf` geo | Edge fields | Absent | Absent / empty on celld |
 | Workers AI / Vectorize | Bindings | Non-goal | Non-goal |
 | `partysocket` clients | Yes | Yes | Yes |
@@ -25,14 +25,14 @@ Last updated: 2026-10-12 (celld 0.6.2 caps probed via Podman)
 - Ownership moves close sockets with code **1012** — clients must reconnect (partysocket does).
 - Container CLI resolution: `scripts/container-runtime.sh` (override with `CONTAINER_CLI`).
 - **Fleet smoke:** `pnpm fleet:smoke` brings up MinIO and runs `celld deploy` on the compose network. MinIO remains unqualified for production durability; use R2/S3/GCS/Azure for real fleets.
-- **Observability:** Node `/healthz` (JSON) and `/metrics` (Prometheus text). Structured logs via `SINKD_LOG_LEVEL` / `SINKD_LOG_JSON=1`.
+- **Observability:** Node `/healthz` (JSON) and `/metrics` (Prometheus text). Structured logs via `SYNKD_LOG_LEVEL` / `SYNKD_LOG_JSON=1`.
 
 ## Capability probe
 
 ```sh
 pnpm celld:spike
-# writes .sinkd/celld-caps.json and prints:
-# GET /parties/main/<room>?token=…&sinkd_caps=1
+# writes .synkd/celld-caps.json and prints:
+# GET /parties/main/<room>?token=…&synkd_caps=1
 ```
 
 | Field | Meaning |

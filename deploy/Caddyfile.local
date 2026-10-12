@@ -11,7 +11,7 @@
 
 	reverse_proxy celld-a:8080 celld-b:8080 {
 		lb_policy cookie {
-			name sinkd_lb
+			name synkd_lb
 			ttl 24h
 		}
 		fail_duration 10s

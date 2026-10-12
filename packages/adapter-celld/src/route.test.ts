@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { routeSinkdRequest, type CelldEnv } from "./route.js";
+import { routeSynkdRequest, type CelldEnv } from "./route.js";
 
-describe("routeSinkdRequest", () => {
+describe("routeSynkdRequest", () => {
   it("returns null for non-party paths", async () => {
-    const res = await routeSinkdRequest(
+    const res = await routeSynkdRequest(
       new Request("http://x/healthz"),
       {} as CelldEnv,
     );
@@ -24,7 +24,7 @@ describe("routeSinkdRequest", () => {
       },
     };
 
-    const res = await routeSinkdRequest(
+    const res = await routeSynkdRequest(
       new Request("http://x/parties/main/demo"),
       env,
       {
@@ -36,7 +36,7 @@ describe("routeSinkdRequest", () => {
   });
 
   it("short-circuits lobby rejects", async () => {
-    const res = await routeSinkdRequest(
+    const res = await routeSynkdRequest(
       new Request("http://x/parties/main/demo"),
       {
         Main: {
@@ -51,7 +51,7 @@ describe("routeSinkdRequest", () => {
       },
     );
     // HTTP path uses onBeforeRequest; connect hook unused — verify request hook:
-    const blocked = await routeSinkdRequest(
+    const blocked = await routeSynkdRequest(
       new Request("http://x/parties/main/demo"),
       {
         Main: {

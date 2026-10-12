@@ -10,20 +10,20 @@ source "$ROOT/scripts/container-runtime.sh"
 IMAGE="${CELLD_IMAGE:-ghcr.io/denoland/celld:latest}"
 NODE_IMAGE="${CELLD_NODE_IMAGE:-docker.io/library/node:22-bookworm}"
 PARTY_DIR="$ROOT/apps/parties"
-ESBUILD_LINUX="$ROOT/.sinkd/bin/esbuild-linux"
+ESBUILD_LINUX="$ROOT/.synkd/bin/esbuild-linux"
 PORT="${CELLD_DEV_PORT:-9876}"
 RUNTIME="$(resolve_container_cli)"
 
-mkdir -p "$ROOT/.sinkd/bin"
+mkdir -p "$ROOT/.synkd/bin"
 
 echo "==> container runtime: $RUNTIME"
 echo "==> celld version"
 "$RUNTIME" run --rm "$IMAGE" --version
 
-echo "==> generate wrangler from sinkd.json"
+echo "==> generate wrangler from synkd.json"
 cd "$ROOT"
-pnpm --filter @sinkd/cli exec tsx src/bin.ts deploy --config "$PARTY_DIR/sinkd.json"
-pnpm --filter @sinkd/adapter-celld --filter @sinkd/auth --filter @sinkd/server --filter @sinkd/contracts run build
+pnpm --filter @synkd/cli exec tsx src/bin.ts deploy --config "$PARTY_DIR/synkd.json"
+pnpm --filter @synkd/adapter-celld --filter @synkd/auth --filter @synkd/server --filter @synkd/contracts run build
 
 ensure_linux_esbuild() {
   if [[ -x "$ESBUILD_LINUX" ]]; then
@@ -32,7 +32,7 @@ ensure_linux_esbuild() {
   fi
   echo "==> fetching linux esbuild via $NODE_IMAGE"
   "$RUNTIME" run --rm \
-    -v "$ROOT/.sinkd/bin:/out" \
+    -v "$ROOT/.synkd/bin:/out" \
     -e NPM_CONFIG_UPDATE_NOTIFIER=false \
     "$NODE_IMAGE" \
     bash -lc 'npm install -g esbuild@0.28.2 >/dev/null && cp "$(which esbuild)" /out/esbuild-linux && chmod +x /out/esbuild-linux'
@@ -54,7 +54,7 @@ if [[ -n "${CELLD_BUCKET:-}" ]]; then
     -e "AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}" \
     -e "AWS_REGION=${AWS_REGION:-auto}" \
     -e "S3_ENDPOINT=${S3_ENDPOINT:-}" \
-    -e "CELLD_ESBUILD=/workspace/.sinkd/bin/esbuild-linux" \
+    -e "CELLD_ESBUILD=/workspace/.synkd/bin/esbuild-linux" \
     -w /workspace/apps/parties \
     "$IMAGE" \
     deploy . --bucket "$CELLD_BUCKET"
@@ -62,12 +62,12 @@ if [[ -n "${CELLD_BUCKET:-}" ]]; then
   exit 0
 fi
 
-echo "==> celld dev on 0.0.0.0:${PORT} (Ctrl+C to stop after smoke, or SINKD_SPIKE_KEEP=1)"
+echo "==> celld dev on 0.0.0.0:${PORT} (Ctrl+C to stop after smoke, or SYNKD_SPIKE_KEEP=1)"
 CID_FILE="$(mktemp)"
 "$RUNTIME" run -d \
   --cidfile "$CID_FILE" \
   -v "$VOLUME_OPTS" \
-  -e CELLD_ESBUILD=/workspace/.sinkd/bin/esbuild-linux \
+  -e CELLD_ESBUILD=/workspace/.synkd/bin/esbuild-linux \
   -p "${PORT}:9876" \
   -w /workspace/apps/parties \
   "$IMAGE" \
@@ -77,10 +77,10 @@ CID="$(cat "$CID_FILE")"
 rm -f "$CID_FILE"
 
 cleanup() {
-  if [[ "${SINKD_SPIKE_KEEP:-0}" != "1" ]]; then
+  if [[ "${SYNKD_SPIKE_KEEP:-0}" != "1" ]]; then
     "$RUNTIME" rm -f "$CID" >/dev/null 2>&1 || true
   else
-    echo "Leaving container $CID running (SINKD_SPIKE_KEEP=1)"
+    echo "Leaving container $CID running (SYNKD_SPIKE_KEEP=1)"
   fi
 }
 trap cleanup EXIT
@@ -116,21 +116,21 @@ echo "==> HTTP party probe"
 curl -si "http://127.0.0.1:${PORT}/parties/main/spike?token=dev-token" | head -40
 
 echo "==> DO capability probe (hibernation / getTags)"
-CAPS_JSON="$(curl -sf "http://127.0.0.1:${PORT}/parties/main/spike?token=dev-token&sinkd_caps=1" || true)"
+CAPS_JSON="$(curl -sf "http://127.0.0.1:${PORT}/parties/main/spike?token=dev-token&synkd_caps=1" || true)"
 if [[ -n "$CAPS_JSON" ]]; then
   echo "$CAPS_JSON"
-  mkdir -p "$ROOT/.sinkd"
-  printf '%s\n' "$CAPS_JSON" > "$ROOT/.sinkd/celld-caps.json"
+  mkdir -p "$ROOT/.synkd"
+  printf '%s\n' "$CAPS_JSON" > "$ROOT/.synkd/celld-caps.json"
 else
   echo "caps probe failed (non-fatal)"
 fi
 
 echo "==> WebSocket broadcast probe"
 cd "$ROOT"
-pnpm --filter @sinkd/runtime exec node ./scripts/ws-smoke.mjs "http://127.0.0.1:${PORT}"
+pnpm --filter @synkd/runtime exec node ./scripts/ws-smoke.mjs "http://127.0.0.1:${PORT}"
 
 echo
 echo "Spike OK via $RUNTIME (HTTP + WebSocket)."
 echo "Party URL: http://127.0.0.1:${PORT}/parties/main/<room>?token=dev-token"
-echo "Caps file: $ROOT/.sinkd/celld-caps.json"
-echo "Keep running: SINKD_SPIKE_KEEP=1 pnpm celld:spike"
+echo "Caps file: $ROOT/.synkd/celld-caps.json"
+echo "Keep running: SYNKD_SPIKE_KEEP=1 pnpm celld:spike"

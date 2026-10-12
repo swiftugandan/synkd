@@ -1,19 +1,19 @@
 import { describe, expect, it } from "vitest";
 import {
   createLobbyAuth,
-  signSinkdToken,
-  verifySinkdToken,
+  signSynkdToken,
+  verifySynkdToken,
   USER_HEADER,
 } from "./index.js";
 
-describe("sinkd auth", () => {
+describe("synkd auth", () => {
   it("round-trips JWT claims", async () => {
-    const token = await signSinkdToken("test-secret-key", {
+    const token = await signSynkdToken("test-secret-key", {
       sub: "user-1",
       name: "Ada",
       room: "demo",
     });
-    const claims = await verifySinkdToken("test-secret-key", token);
+    const claims = await verifySynkdToken("test-secret-key", token);
     expect(claims).toMatchObject({ sub: "user-1", name: "Ada", room: "demo" });
   });
 

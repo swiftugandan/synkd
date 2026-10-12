@@ -1,8 +1,8 @@
 import {
   DEFAULT_PARTY_PREFIX,
   parsePartyRoute,
-} from "@sinkd/contracts";
-import { partyNameToBinding, type PartyServerOptions } from "@sinkd/server";
+} from "@synkd/contracts";
+import { partyNameToBinding, type PartyServerOptions } from "@synkd/server";
 
 export interface CelldEnv {
   [binding: string]: {
@@ -14,7 +14,7 @@ export interface CelldEnv {
 /**
  * PartyKit-shaped router for celld Workers: `/parties/:party/:room` → DO stub.
  */
-export async function routeSinkdRequest(
+export async function routeSynkdRequest(
   request: Request,
   env: CelldEnv,
   options: PartyServerOptions & {

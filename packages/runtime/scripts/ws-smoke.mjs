@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Two-client WebSocket smoke against a sinkd / celld party URL.
+ * Two-client WebSocket smoke against a synkd / celld party URL.
  * Usage: node scripts/ws-smoke.mjs [baseHttpUrl]
  * Example: node scripts/ws-smoke.mjs http://127.0.0.1:9876
  */
@@ -9,8 +9,8 @@ import WebSocket from "ws";
 const base = (
   process.argv.slice(2).find((arg) => arg !== "--") ?? "http://127.0.0.1:8787"
 ).replace(/\/$/, "");
-const token = process.env.SINKD_TOKEN ?? "dev-token";
-const room = process.env.SINKD_ROOM ?? `smoke-${Date.now()}`;
+const token = process.env.SYNKD_TOKEN ?? "dev-token";
+const room = process.env.SYNKD_ROOM ?? `smoke-${Date.now()}`;
 const wsBase = base.replace(/^http/, "ws");
 
 function open(url) {

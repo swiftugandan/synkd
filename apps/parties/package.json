@@ -1,18 +1,18 @@
 {
-  "name": "@sinkd/parties",
+  "name": "@synkd/parties",
   "private": true,
   "version": "0.1.0",
   "type": "module",
   "scripts": {
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "dev": "sinkd dev --root ."
+    "dev": "synkd dev --root ."
   },
   "dependencies": {
-    "@sinkd/adapter-celld": "workspace:*",
-    "@sinkd/auth": "workspace:*",
-    "@sinkd/cli": "workspace:*",
-    "@sinkd/server": "workspace:*",
-    "@sinkd/y": "workspace:*"
+    "@synkd/adapter-celld": "workspace:*",
+    "@synkd/auth": "workspace:*",
+    "@synkd/cli": "workspace:*",
+    "@synkd/server": "workspace:*",
+    "@synkd/y": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.9.3"

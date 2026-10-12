@@ -8,7 +8,7 @@ export {
   WS_CLOSE_SERVICE_RESTART,
 } from "./limits.js";
 
-export { SinkdErrorCode, SinkdError } from "./errors.js";
+export { SynkdErrorCode, SynkdError } from "./errors.js";
 export type { PartyName, RoomId, ConnectionId, Tag, PartyRoute } from "./types.js";
 export { parsePartyRoute, partyRoomKey } from "./route.js";
 export { normalizeTags, assertTags } from "./tags.js";

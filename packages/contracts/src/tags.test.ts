@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { normalizeTags } from "./tags.js";
-import { SinkdError } from "./errors.js";
+import { SynkdError } from "./errors.js";
 
 describe("normalizeTags", () => {
   it("prepends connection id and dedupes", () => {
@@ -12,10 +12,10 @@ describe("normalizeTags", () => {
 
   it("rejects too many tags", () => {
     const tags = Array.from({ length: 10 }, (_, i) => `t${i}`);
-    expect(() => normalizeTags("id", tags)).toThrow(SinkdError);
+    expect(() => normalizeTags("id", tags)).toThrow(SynkdError);
   });
 
   it("rejects overlong tags", () => {
-    expect(() => normalizeTags("id", ["x".repeat(257)])).toThrow(SinkdError);
+    expect(() => normalizeTags("id", ["x".repeat(257)])).toThrow(SynkdError);
   });
 });

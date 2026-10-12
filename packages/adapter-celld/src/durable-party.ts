@@ -1,5 +1,5 @@
-import { CONNECTION_ID_QUERY } from "@sinkd/contracts";
-import type { PartyClass, Server } from "@sinkd/server";
+import { CONNECTION_ID_QUERY } from "@synkd/contracts";
+import type { PartyClass, Server } from "@synkd/server";
 import { nanoid } from "nanoid";
 import { DoStorageAdapter, type DoStorage } from "./do-storage.js";
 
@@ -11,7 +11,7 @@ export interface CelldDurableObjectState {
   getTags?(ws: WebSocket): string[];
 }
 
-export type SinkdDoCapabilities = {
+export type SynkdDoCapabilities = {
   acceptWebSocket: boolean;
   getWebSockets: boolean;
   getTags: boolean;
@@ -21,7 +21,7 @@ export type SinkdDoCapabilities = {
 
 export function probeDoCapabilities(
   state: CelldDurableObjectState,
-): SinkdDoCapabilities {
+): SynkdDoCapabilities {
   const acceptWebSocket = typeof state.acceptWebSocket === "function";
   const getWebSockets = typeof state.getWebSockets === "function";
   const getTags = typeof state.getTags === "function";
@@ -34,15 +34,15 @@ export function probeDoCapabilities(
 }
 
 /**
- * Creates a Durable Object class that hosts a sinkd Server instance.
+ * Creates a Durable Object class that hosts a synkd Server instance.
  * Compatible with celld / workerd WebSocketPair + optional hibernation APIs.
  */
 export function createDurableParty(Party: PartyClass) {
-  return class SinkdDurableParty {
+  return class SynkdDurableParty {
     readonly #server: Server;
     readonly #state: CelldDurableObjectState;
     readonly #sockets = new Map<string, WorkersWebSocket>();
-    readonly #caps: SinkdDoCapabilities;
+    readonly #caps: SynkdDoCapabilities;
 
     constructor(state: CelldDurableObjectState, env?: unknown) {
       this.#state = state;
@@ -53,10 +53,10 @@ export function createDurableParty(Party: PartyClass) {
 
     async fetch(request: Request): Promise<Response> {
       const url = new URL(request.url);
-      if (url.searchParams.get("sinkd_caps") === "1") {
+      if (url.searchParams.get("synkd_caps") === "1") {
         return Response.json({
           ok: true,
-          service: "sinkd",
+          service: "synkd",
           room: this.#server.name,
           capabilities: this.#caps,
           tagStrategy: this.#caps.getTags

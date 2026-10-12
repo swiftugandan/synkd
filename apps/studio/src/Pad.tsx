@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { WS_CLOSE_SERVICE_RESTART } from "@sinkd/client";
+import { WS_CLOSE_SERVICE_RESTART } from "@synkd/client";
 import * as Y from "yjs";
 import { WebsocketProvider } from "y-websocket";
 
@@ -170,11 +170,11 @@ export function Pad({
         </button>
       </div>
 
-      <label className="pad-label" htmlFor="sinkd-pad">
+      <label className="pad-label" htmlFor="synkd-pad">
         Shared notepad
       </label>
       <textarea
-        id="sinkd-pad"
+        id="synkd-pad"
         ref={areaRef}
         className="pad-area"
         value={text}

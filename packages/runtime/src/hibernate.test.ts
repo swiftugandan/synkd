@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { MemoryStorage, Server } from "@sinkd/server";
+import { MemoryStorage, Server } from "@synkd/server";
 import { RoomHibernator, partyAllowsHibernate } from "./hibernate.js";
 import { createLogger } from "./logger.js";
 

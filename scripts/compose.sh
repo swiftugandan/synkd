@@ -2,7 +2,7 @@
 # Compose wrapper: podman compose / podman-compose / docker compose.
 # Examples:
 #   ./scripts/compose.sh up -d
-#   SINKD_MINIO=1 ./scripts/compose.sh up -d
+#   SYNKD_MINIO=1 ./scripts/compose.sh up -d
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -13,7 +13,7 @@ COMPOSE="$(resolve_compose_cli)"
 cd "$ROOT/deploy"
 
 files=(-f docker-compose.yml)
-if [[ "${SINKD_MINIO:-0}" == "1" ]]; then
+if [[ "${SYNKD_MINIO:-0}" == "1" ]]; then
   files+=(-f compose.minio.yml)
 fi
 

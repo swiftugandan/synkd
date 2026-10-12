@@ -1,6 +1,6 @@
 # Contracts
 
-Frozen TypeScript package: `packages/contracts` (`@sinkd/contracts`).
+Frozen TypeScript package: `packages/contracts` (`@synkd/contracts`).
 
 ## Serialization
 

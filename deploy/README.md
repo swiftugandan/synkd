@@ -17,26 +17,26 @@ export CELLD_BUCKET=s3://your-bucket
 export AWS_ACCESS_KEY_ID=…
 export AWS_SECRET_ACCESS_KEY=…
 export AWS_REGION=auto
-export SINKD_SITE=rooms.example.com   # public DNS → this host
+export SYNKD_SITE=rooms.example.com   # public DNS → this host
 
 # Build + push worker artifact
-pnpm --filter @sinkd/cli exec tsx src/bin.ts deploy --config apps/parties/sinkd.json
+pnpm --filter @synkd/cli exec tsx src/bin.ts deploy --config apps/parties/synkd.json
 CELLD_BUCKET="$CELLD_BUCKET" pnpm celld:spike   # runs `celld deploy` in-container
 
-# Fleet + Caddy (Let's Encrypt via SINKD_SITE)
-SINKD_SITE=rooms.example.com ./scripts/compose.sh up -d
+# Fleet + Caddy (Let's Encrypt via SYNKD_SITE)
+SYNKD_SITE=rooms.example.com ./scripts/compose.sh up -d
 ```
 
-Point DNS A/AAAA for `SINKD_SITE` at the Caddy host. Caddy terminates TLS and load-balances to both celld nodes with a sticky cookie (`sinkd_lb`).
+Point DNS A/AAAA for `SYNKD_SITE` at the Caddy host. Caddy terminates TLS and load-balances to both celld nodes with a sticky cookie (`synkd_lb`).
 
 ## Local lab (MinIO + internal TLS)
 
 MinIO is **not** celld-qualified for production durability — labs only.
 
 ```sh
-export CELLD_BUCKET=s3://sinkd-cells
-export AWS_ACCESS_KEY_ID=sinkd
-export AWS_SECRET_ACCESS_KEY=sinkdsecret
+export CELLD_BUCKET=s3://synkd-cells
+export AWS_ACCESS_KEY_ID=synkd
+export AWS_SECRET_ACCESS_KEY=synkdsecret
 export AWS_REGION=us-east-1
 export S3_ENDPOINT=http://minio:9000
 
@@ -47,8 +47,8 @@ export S3_ENDPOINT=http://minio:9000
   up -d
 
 # after MinIO is healthy:
-CELLD_BUCKET=s3://sinkd-cells \
-  AWS_ACCESS_KEY_ID=sinkd AWS_SECRET_ACCESS_KEY=sinkdsecret \
+CELLD_BUCKET=s3://synkd-cells \
+  AWS_ACCESS_KEY_ID=synkd AWS_SECRET_ACCESS_KEY=synkdsecret \
   AWS_REGION=us-east-1 S3_ENDPOINT=http://minio:9000 \
   pnpm fleet:smoke
 ```
@@ -60,17 +60,17 @@ Open `https://localhost/` (Caddy `tls internal`). Studio can target `?backend=ce
 After a celld listener is up:
 
 ```sh
-curl -s "http://127.0.0.1:9876/parties/main/probe?token=dev-token&sinkd_caps=1"
+curl -s "http://127.0.0.1:9876/parties/main/probe?token=dev-token&synkd_caps=1"
 ```
 
-Reports whether hibernation `acceptWebSocket` / `getWebSockets` exist on the DO state (native tag routing vs sinkd userland tags).
+Reports whether hibernation `acceptWebSocket` / `getWebSockets` exist on the DO state (native tag routing vs synkd userland tags).
 
 ## Files
 
 | File | Role |
 | --- | --- |
 | `docker-compose.yml` | celld-a/b + Caddy |
-| `Caddyfile` | Public HTTPS (`SINKD_SITE`) |
+| `Caddyfile` | Public HTTPS (`SYNKD_SITE`) |
 | `Caddyfile.local` | Lab HTTPS (`tls internal`) |
 | `compose.tls-local.yml` | Mount local Caddyfile + data vols |
 | `compose.minio.yml` | Experimental object store |

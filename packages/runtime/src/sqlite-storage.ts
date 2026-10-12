@@ -1,7 +1,7 @@
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { DatabaseSync } from "node:sqlite";
-import type { RoomStorage } from "@sinkd/server";
+import type { RoomStorage } from "@synkd/server";
 
 /**
  * File-backed room storage using Node's built-in SQLite.

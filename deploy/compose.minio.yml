@@ -1,8 +1,8 @@
 # Local object store for celld fleet experiments (NOT production-qualified).
 # Usage:
-#   export CELLD_BUCKET=s3://sinkd-cells
-#   export AWS_ACCESS_KEY_ID=sinkd
-#   export AWS_SECRET_ACCESS_KEY=sinkdsecret
+#   export CELLD_BUCKET=s3://synkd-cells
+#   export AWS_ACCESS_KEY_ID=synkd
+#   export AWS_SECRET_ACCESS_KEY=synkdsecret
 #   export AWS_REGION=us-east-1
 #   export S3_ENDPOINT=http://minio:9000
 #   ./scripts/compose.sh -f docker-compose.yml -f compose.minio.yml up -d
@@ -12,15 +12,15 @@ services:
     image: docker.io/minio/minio:latest
     command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: ${AWS_ACCESS_KEY_ID:-sinkd}
-      MINIO_ROOT_PASSWORD: ${AWS_SECRET_ACCESS_KEY:-sinkdsecret}
+      MINIO_ROOT_USER: ${AWS_ACCESS_KEY_ID:-synkd}
+      MINIO_ROOT_PASSWORD: ${AWS_SECRET_ACCESS_KEY:-synkdsecret}
     ports:
       - "9000:9000"
       - "9001:9001"
     volumes:
       - minio-data:/data
     networks:
-      - sinkd
+      - synkd
 
   minio-init:
     image: docker.io/minio/mc:latest
@@ -37,19 +37,19 @@ services:
           [ "$$i" -gt 30 ] && exit 1
           sleep 1
         done
-        mc mb --ignore-existing local/sinkd-cells
+        mc mb --ignore-existing local/synkd-cells
         mc ls local
     environment:
-      MINIO_ROOT_USER: ${AWS_ACCESS_KEY_ID:-sinkd}
-      MINIO_ROOT_PASSWORD: ${AWS_SECRET_ACCESS_KEY:-sinkdsecret}
+      MINIO_ROOT_USER: ${AWS_ACCESS_KEY_ID:-synkd}
+      MINIO_ROOT_PASSWORD: ${AWS_SECRET_ACCESS_KEY:-synkdsecret}
     networks:
-      - sinkd
+      - synkd
 
   celld-a:
     environment:
-      CELLD_BUCKET: ${CELLD_BUCKET:-s3://sinkd-cells}
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-sinkd}
-      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-sinkdsecret}
+      CELLD_BUCKET: ${CELLD_BUCKET:-s3://synkd-cells}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-synkd}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-synkdsecret}
       AWS_REGION: ${AWS_REGION:-us-east-1}
       S3_ENDPOINT: ${S3_ENDPOINT:-http://minio:9000}
     depends_on:
@@ -57,9 +57,9 @@ services:
 
   celld-b:
     environment:
-      CELLD_BUCKET: ${CELLD_BUCKET:-s3://sinkd-cells}
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-sinkd}
-      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-sinkdsecret}
+      CELLD_BUCKET: ${CELLD_BUCKET:-s3://synkd-cells}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-synkd}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-synkdsecret}
       AWS_REGION: ${AWS_REGION:-us-east-1}
       S3_ENDPOINT: ${S3_ENDPOINT:-http://minio:9000}
     depends_on:

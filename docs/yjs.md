@@ -1,18 +1,18 @@
-# Collaborative docs with `@sinkd/y`
+# Collaborative docs with `@synkd/y`
 
-`YjsServer` speaks the **y-websocket** binary protocol (sync + awareness) inside a sinkd party. Persist encoded ydoc state in room storage; reuse `WebsocketProvider` on the client.
+`YjsServer` speaks the **y-websocket** binary protocol (sync + awareness) inside a synkd party. Persist encoded ydoc state in room storage; reuse `WebsocketProvider` on the client.
 
 ## Server
 
 ```ts
-import { YjsServer } from "@sinkd/y";
+import { YjsServer } from "@synkd/y";
 
 export class Docs extends YjsServer {
   static override options = { hibernate: true };
 }
 ```
 
-Register under `parties.docs` in `sinkd.json` (see `apps/parties`).
+Register under `parties.docs` in `synkd.json` (see `apps/parties`).
 
 ## Client
 

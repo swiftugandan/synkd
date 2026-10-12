@@ -20,9 +20,9 @@ describe("formatPrometheusMetrics", () => {
         hibernations: 2,
       },
     });
-    expect(text).toContain("sinkd_connections 4");
-    expect(text).toContain("sinkd_messages_total 9");
-    expect(text).toContain("sinkd_hibernations_total 2");
-    expect(text).toContain('sinkd_info{version="0.1.0"} 1');
+    expect(text).toContain("synkd_connections 4");
+    expect(text).toContain("synkd_messages_total 9");
+    expect(text).toContain("synkd_hibernations_total 2");
+    expect(text).toContain('synkd_info{version="0.1.0"} 1');
   });
 });

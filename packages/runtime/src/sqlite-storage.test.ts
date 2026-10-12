@@ -6,7 +6,7 @@ import { SqliteStorage } from "./sqlite-storage.js";
 
 describe("SqliteStorage durability", () => {
   it("survives close and reopen (NFR-DUR-1)", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "sinkd-dur-"));
+    const dir = mkdtempSync(join(tmpdir(), "synkd-dur-"));
     const file = join(dir, "room.sqlite");
     try {
       const a = new SqliteStorage(file);

@@ -3,6 +3,6 @@ export {
   createDurableParty,
   probeDoCapabilities,
   type CelldDurableObjectState,
-  type SinkdDoCapabilities,
+  type SynkdDoCapabilities,
 } from "./durable-party.js";
-export { routeSinkdRequest, type CelldEnv } from "./route.js";
+export { routeSynkdRequest, type CelldEnv } from "./route.js";

@@ -22,12 +22,12 @@ contracts
    *Acceptance:* unit tests for broadcast exclusion and tag filtering.
 3. **runtime** — HTTP/WS host, room registry, SQLite storage  
    *Acceptance:* e2e two-client broadcast + storage round-trip + lobby 401.
-4. **config** — load `sinkd.json`, emit wrangler bindings  
+4. **config** — load `synkd.json`, emit wrangler bindings  
    *Acceptance:* fixture config → expected wrangler.jsonc.
 5. **client** — host helpers for partysocket  
    *Acceptance:* builds URL for party/room/`_pk`.
 6. **cli** — init/dev/deploy  
-   *Acceptance:* `sinkd init` creates project; `sinkd dev` serves healthz.
+   *Acceptance:* `synkd init` creates project; `synkd dev` serves healthz.
 7. **parties** — Chat example  
    *Acceptance:* chat party responds to HTTP ping and WS chat frames.
 8. **studio** — UI  

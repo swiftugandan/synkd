@@ -1,4 +1,4 @@
-import { SinkdError, SinkdErrorCode } from "./errors.js";
+import { SynkdError, SynkdErrorCode } from "./errors.js";
 import { MAX_CONNECTION_TAGS, MAX_TAG_LENGTH } from "./limits.js";
 import { asTag, type ConnectionId, type Tag } from "./types.js";
 
@@ -21,15 +21,15 @@ export function normalizeTags(
 
 export function assertTags(tags: readonly string[]): void {
   if (tags.length > MAX_CONNECTION_TAGS) {
-    throw new SinkdError(
-      SinkdErrorCode.INVALID_TAG,
+    throw new SynkdError(
+      SynkdErrorCode.INVALID_TAG,
       `At most ${MAX_CONNECTION_TAGS} tags allowed (got ${tags.length})`,
     );
   }
   for (const tag of tags) {
     if (tag.length > MAX_TAG_LENGTH) {
-      throw new SinkdError(
-        SinkdErrorCode.INVALID_TAG,
+      throw new SynkdError(
+        SynkdErrorCode.INVALID_TAG,
         `Tag exceeds ${MAX_TAG_LENGTH} characters`,
       );
     }

@@ -2,6 +2,8 @@ node_modules
 dist
 .turbo
 .sinkd
+.synkd
+!.synkd/.gitkeep
 !.sinkd/.gitkeep
 .celld
 apps/parties/.celld

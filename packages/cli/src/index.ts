@@ -2,36 +2,37 @@ import { execSync } from "node:child_process";
 import { mkdirSync, writeFileSync, existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { Command } from "commander";
-import { createLobbyAuth } from "@sinkd/auth";
+import { createAdminAuth, createLobbyAuth } from "@synkd/auth";
 import {
   bindingMap,
-  loadSinkdConfig,
+  loadSynkdConfig,
+  resolveConfigPath,
   toWranglerJsonc,
-  type SinkdConfig,
-} from "@sinkd/config";
-import { createSinkdRuntime, type SinkdRuntime } from "@sinkd/runtime";
+  type SynkdConfig,
+} from "@synkd/config";
+import { createSynkdRuntime, type SynkdRuntime } from "@synkd/runtime";
 import { loadParties } from "./load-parties.js";
 import { watchPartySources } from "./watch-parties.js";
 
 export async function runCli(argv: string[]): Promise<void> {
   const program = new Command();
   program
-    .name("sinkd")
+    .name("synkd")
     .description("Self-hosted PartyKit-compatible realtime rooms")
     .version("0.1.0");
 
   program
     .command("init")
     .argument("[dir]", "project directory", ".")
-    .option("-n, --name <name>", "project name", "sinkd-app")
+    .option("-n, --name <name>", "project name", "synkd-app")
     .action((dir: string, opts: { name: string }) => {
       initProject(resolve(dir), opts.name);
     });
 
   program
     .command("dev")
-    .option("-c, --config <path>", "path to sinkd.json", "sinkd.json")
-    .option("--root <dir>", "project root (contains sinkd.json)")
+    .option("-c, --config <path>", "path to synkd.json", "synkd.json")
+    .option("--root <dir>", "project root (contains synkd.json)")
     .option("-p, --port <port>", "port", (v) => Number(v))
     .option("--no-watch", "disable hot reload of party modules")
     .action(
@@ -43,8 +44,8 @@ export async function runCli(argv: string[]): Promise<void> {
       }) => {
         const root = resolve(opts.root ?? process.cwd());
         const configPath = opts.root
-          ? resolve(root, "sinkd.json")
-          : resolve(opts.config);
+          ? resolveConfigPath(root)
+          : resolveConfigPath(resolve(opts.config));
         await runDev(configPath, {
           port: opts.port,
           watch: opts.watch !== false,
@@ -54,19 +55,19 @@ export async function runCli(argv: string[]): Promise<void> {
 
   program
     .command("deploy")
-    .option("-c, --config <path>", "path to sinkd.json", "sinkd.json")
+    .option("-c, --config <path>", "path to synkd.json", "synkd.json")
     .action((opts: { config: string }) => {
-      deploy(resolve(opts.config));
+      deploy(resolveConfigPath(resolve(opts.config)));
     });
 
   program
     .command("doctor")
-    .option("-c, --config <path>", "path to sinkd.json", "sinkd.json")
+    .option("-c, --config <path>", "path to synkd.json", "synkd.json")
     .option("--root <dir>", "project root")
     .action((opts: { config: string; root?: string }) => {
       const configPath = opts.root
-        ? resolve(opts.root, "sinkd.json")
-        : resolve(opts.config);
+        ? resolveConfigPath(resolve(opts.root))
+        : resolveConfigPath(resolve(opts.config));
       doctor(configPath);
     });
 
@@ -76,7 +77,7 @@ export async function runCli(argv: string[]): Promise<void> {
 function initProject(dir: string, name: string): void {
   mkdirSync(join(dir, "src"), { recursive: true });
 
-  const config: SinkdConfig = {
+  const config: SynkdConfig = {
     name,
     port: 8787,
     parties: {
@@ -86,7 +87,7 @@ function initProject(dir: string, name: string): void {
     cors: true,
   };
 
-  writeFileSync(join(dir, "sinkd.json"), `${JSON.stringify(config, null, 2)}\n`);
+  writeFileSync(join(dir, "synkd.json"), `${JSON.stringify(config, null, 2)}\n`);
   writeFileSync(join(dir, "wrangler.jsonc"), toWranglerJsonc(config));
   writeFileSync(
     join(dir, "package.json"),
@@ -96,9 +97,9 @@ function initProject(dir: string, name: string): void {
         private: true,
         type: "module",
         scripts: {
-          dev: "sinkd dev",
-          deploy: "sinkd deploy",
-          doctor: "sinkd doctor",
+          dev: "synkd dev",
+          deploy: "synkd deploy",
+          doctor: "synkd doctor",
         },
       },
       null,
@@ -107,7 +108,7 @@ function initProject(dir: string, name: string): void {
   );
   writeFileSync(
     join(dir, "src/chat.ts"),
-    `import { Server, type Connection } from "@sinkd/server";
+    `import { Server, type Connection } from "@synkd/server";
 
 export class Chat extends Server {
   static options = { hibernate: true };
@@ -158,8 +159,8 @@ export default Chat;
   );
   writeFileSync(
     join(dir, "src/worker.ts"),
-    `import { createDurableParty, routeSinkdRequest } from "@sinkd/adapter-celld";
-import { createLobbyAuth } from "@sinkd/auth";
+    `import { createDurableParty, routeSynkdRequest } from "@synkd/adapter-celld";
+import { createLobbyAuth } from "@synkd/auth";
 import { Chat } from "./chat.ts";
 
 export const ChatDO = createDurableParty(Chat);
@@ -169,7 +170,7 @@ const lobby = createLobbyAuth({ token: "dev-token" });
 export default {
   async fetch(request: Request, env: Record<string, unknown>): Promise<Response> {
     return (
-      (await routeSinkdRequest(request, env as never, {
+      (await routeSynkdRequest(request, env as never, {
         bindings: { main: "ChatDO" },
         onBeforeConnect: lobby,
         onBeforeRequest: lobby,
@@ -184,17 +185,17 @@ export default {
     `# ${name}
 
 \`\`\`sh
-sinkd doctor
-sinkd dev
+synkd doctor
+synkd dev
 \`\`\`
 
 Connect with partysocket and \`?token=dev-token\`.
 `,
   );
 
-  console.log(`Initialized sinkd project in ${dir}`);
-  console.log(`  sinkd doctor --root ${dir}`);
-  console.log(`  sinkd dev --root ${dir}`);
+  console.log(`Initialized synkd project in ${dir}`);
+  console.log(`  synkd doctor --root ${dir}`);
+  console.log(`  synkd dev --root ${dir}`);
 }
 
 async function runDev(
@@ -202,7 +203,7 @@ async function runDev(
   opts: { port?: number; watch?: boolean } = {},
 ): Promise<void> {
   if (!existsSync(configPath)) {
-    throw new Error(`Missing config: ${configPath} (run sinkd init)`);
+    throw new Error(`Missing config: ${configPath} (run synkd init)`);
   }
   const root = dirname(configPath);
 
@@ -211,21 +212,26 @@ async function runDev(
   };
   tsx.register();
 
-  let runtime: SinkdRuntime | undefined;
+  let runtime: SynkdRuntime | undefined;
   let stopWatch: (() => void) | undefined;
   let reloading = false;
   const watchEnabled = opts.watch !== false;
 
   const boot = async (reason?: string) => {
-    const config = loadSinkdConfig(configPath);
+    const config = loadSynkdConfig(configPath);
     const parties = await loadParties(config, root);
     const lobby = createLobbyAuth({
       token: config.auth?.token,
       jwtSecret: config.auth?.jwtSecret,
       origins: config.auth?.origins,
     });
+    const admin = createAdminAuth({
+      token: config.auth?.adminToken ?? config.auth?.token,
+      jwtSecret: config.auth?.jwtSecret,
+      origins: config.auth?.origins,
+    });
 
-    const next = createSinkdRuntime({
+    const next = createSynkdRuntime({
       parties,
       bindings: bindingMap(config),
       prefix: config.prefix,
@@ -233,12 +239,14 @@ async function runDev(
       port: opts.port ?? config.port ?? 8787,
       storageDir:
         config.storageDir === undefined
-          ? join(root, ".sinkd/rooms")
+          ? join(root, ".synkd/rooms")
           : config.storageDir,
       cors: config.cors ?? true,
       maxConnectionsPerRoom: config.maxConnectionsPerRoom,
       onBeforeConnect: lobby,
       onBeforeRequest: lobby,
+      adminAuth: admin,
+      tenantId: config.tenantId ?? "default",
     });
 
     // Close first to free the port (fixed port → would EADDRINUSE otherwise).
@@ -251,24 +259,29 @@ async function runDev(
     const partyNames = Object.keys(config.parties);
     const primary = partyNames[0] ?? "main";
     if (reason) {
-      console.log(`sinkd reloaded (${reason}) → ${url}`);
+      console.log(`synkd reloaded (${reason}) → ${url}`);
     } else {
-      console.log(`sinkd listening on ${url}`);
+      console.log(`synkd listening on ${url}`);
       console.log(`  health:  ${url}/healthz`);
       console.log(`  metrics: ${url}/metrics`);
+      console.log(`  control: ${url}/v1/* (admin Bearer)`);
       console.log(`  party:   ${url}/parties/${primary}/<room>`);
       if (partyNames.length > 1) {
         console.log(`  parties: ${partyNames.join(", ")}`);
       }
       console.log(
         watchEnabled
-          ? `  watch:   on (party sources + sinkd.json)`
+          ? `  watch:   on (party sources + synkd.json)`
           : `  watch:   off`,
       );
       if (config.auth?.token) {
         console.log(
-          `  auth:    ?token=${config.auth.token} (or Authorization: Bearer …)`,
+          `  guest:   ?token=${config.auth.token} (or Authorization: Bearer …)`,
         );
+      }
+      const adminTok = config.auth?.adminToken ?? config.auth?.token;
+      if (adminTok) {
+        console.log(`  admin:   Bearer ${adminTok}`);
       }
       if (config.auth?.jwtSecret) {
         console.log(`  auth:    JWT (HS256) via ?token= or Bearer`);
@@ -279,14 +292,14 @@ async function runDev(
   await boot();
 
   if (watchEnabled) {
-    const config = loadSinkdConfig(configPath);
+    const config = loadSynkdConfig(configPath);
     stopWatch = watchPartySources(config, root, configPath, (reason) => {
       if (reloading) return;
       reloading = true;
       void boot(reason)
         .catch((error) => {
           console.error(
-            "sinkd reload failed:",
+            "synkd reload failed:",
             error instanceof Error ? error.message : error,
           );
         })
@@ -310,7 +323,7 @@ function deploy(configPath: string): void {
     throw new Error(`Missing config: ${configPath}`);
   }
   const root = dirname(configPath);
-  const config = loadSinkdConfig(configPath);
+  const config = loadSynkdConfig(configPath);
   const wranglerPath = join(root, "wrangler.jsonc");
   writeFileSync(wranglerPath, toWranglerJsonc(config));
   console.log(`Wrote ${wranglerPath}`);
@@ -336,8 +349,8 @@ function doctor(configPath: string): void {
 
   if (existsSync(configPath)) {
     try {
-      const config = loadSinkdConfig(configPath);
-      checks.push({ ok: true, label: "sinkd.json", detail: config.name });
+      const config = loadSynkdConfig(configPath);
+      checks.push({ ok: true, label: "synkd.json", detail: config.name });
       for (const [party, partyConfig] of Object.entries(config.parties)) {
         const entry = resolve(dirname(configPath), partyConfig.entry);
         checks.push({
@@ -361,7 +374,7 @@ function doctor(configPath: string): void {
         label: "yjs docs party",
         detail: hasDocs
           ? "docs — WebsocketProvider → /parties/docs/:room"
-          : "optional (add parties.docs + @sinkd/y)",
+          : "optional (add parties.docs + @synkd/y)",
       });
       checks.push({
         ok: true,
@@ -371,18 +384,18 @@ function doctor(configPath: string): void {
     } catch (error) {
       checks.push({
         ok: false,
-        label: "sinkd.json parse",
+        label: "synkd.json parse",
         detail: error instanceof Error ? error.message : String(error),
       });
     }
   } else {
-    checks.push({ ok: false, label: "sinkd.json", detail: "missing" });
+    checks.push({ ok: false, label: "synkd.json", detail: "missing" });
   }
 
   checks.push({
     ok: true,
     label: "local runtime",
-    detail: "@sinkd/runtime (Node)",
+    detail: "@synkd/runtime (Node)",
   });
 
   let celldDetail = "not on PATH (use Docker / Linux / ARM64)";

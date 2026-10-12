@@ -1,12 +1,12 @@
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import type { SinkdConfig } from "@sinkd/config";
-import type { PartyClass } from "@sinkd/server";
+import type { SynkdConfig } from "@synkd/config";
+import type { PartyClass } from "@synkd/server";
 
 /** Dynamic-import party modules; `bust` busts ESM cache for hot reload. */
 export async function loadParties(
-  config: SinkdConfig,
+  config: SynkdConfig,
   root: string,
   bust = Date.now(),
 ): Promise<Record<string, PartyClass>> {

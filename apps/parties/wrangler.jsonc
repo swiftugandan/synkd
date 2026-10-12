@@ -1,5 +1,5 @@
 {
-  "name": "sinkd-chat",
+  "name": "synkd-chat",
   "main": "src/worker.ts",
   "compatibility_date": "2026-01-01",
   "durable_objects": {

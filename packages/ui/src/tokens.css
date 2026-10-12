@@ -1,0 +1,19 @@
+:root {
+  --synkd-abyss: #041016;
+  --synkd-depth: #0a1f2c;
+  --synkd-shelf: #123447;
+  --synkd-foam: #d7f0ea;
+  --synkd-foam-dim: #9bb8b2;
+  --synkd-signal: #2ad4c0;
+  --synkd-signal-deep: #149a8c;
+  --synkd-warn: #ffb020;
+  --synkd-danger: #ff5c5c;
+  --synkd-line: rgba(215, 240, 234, 0.12);
+  --synkd-glow: rgba(42, 212, 192, 0.22);
+
+  --synkd-font-display: "Syne", sans-serif;
+  --synkd-font-body: "Manrope", sans-serif;
+  --synkd-font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  color-scheme: dark;
+}

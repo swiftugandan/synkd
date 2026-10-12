@@ -1,5 +1,5 @@
 {
-  "name": "@sinkd/contracts",
+  "name": "@synkd/contracts",
   "version": "0.1.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -22,7 +22,7 @@
     "typescript": "^5.9.3",
     "vitest": "^3.2.4"
   },
-  "description": "Shared URL contracts, limits, and errors for sinkd",
+  "description": "Shared URL contracts, limits, and errors for synkd",
   "license": "MIT",
   "publishConfig": {
     "access": "public"

@@ -1,5 +1,5 @@
 {
-  "name": "sinkd-chat",
+  "name": "synkd-chat",
   "port": 8787,
   "host": "127.0.0.1",
   "parties": {
@@ -23,5 +23,5 @@
     "token": "dev-token"
   },
   "cors": true,
-  "storageDir": ".sinkd/rooms"
+  "storageDir": ".synkd/rooms"
 }

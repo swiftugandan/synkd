@@ -1,4 +1,4 @@
-import { SinkdError, SinkdErrorCode } from "./errors.js";
+import { SynkdError, SynkdErrorCode } from "./errors.js";
 import { DEFAULT_PARTY_PREFIX } from "./limits.js";
 import { asPartyName, asRoomId, type PartyRoute } from "./types.js";
 
@@ -18,8 +18,8 @@ export function parsePartyRoute(
   const room = segments[2];
   if (!party || !room) return null;
   if (party.includes("..") || room.includes("..")) {
-    throw new SinkdError(
-      SinkdErrorCode.ROUTE_NOT_FOUND,
+    throw new SynkdError(
+      SynkdErrorCode.ROUTE_NOT_FOUND,
       "Invalid party route",
       404,
     );

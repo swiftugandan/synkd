@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
-  createSinkdSocket,
+  createSynkdSocket,
   WS_CLOSE_SERVICE_RESTART,
-} from "@sinkd/client";
+} from "@synkd/client";
 
 type RosterEntry = { id: string; name?: string };
 
@@ -57,11 +57,11 @@ export function Room({
   const [serviceRestart, setServiceRestart] = useState(false);
   const [reconnectNonce, setReconnectNonce] = useState(0);
   const listRef = useRef<HTMLDivElement>(null);
-  const socketRef = useRef<ReturnType<typeof createSinkdSocket> | null>(null);
+  const socketRef = useRef<ReturnType<typeof createSynkdSocket> | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const socket = createSinkdSocket({
+    const socket = createSynkdSocket({
       host,
       room,
       party: "main",

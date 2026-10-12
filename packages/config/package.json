@@ -1,5 +1,5 @@
 {
-  "name": "@sinkd/config",
+  "name": "@synkd/config",
   "version": "0.1.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -19,14 +19,14 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@sinkd/server": "workspace:*"
+    "@synkd/server": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^24.7.2",
     "typescript": "^5.9.3",
     "vitest": "^3.2.4"
   },
-  "description": "sinkd.json loader and wrangler binding emitter",
+  "description": "synkd.json loader and wrangler binding emitter",
   "license": "MIT",
   "publishConfig": {
     "access": "public"

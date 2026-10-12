@@ -5,20 +5,27 @@ import { nanoid } from "nanoid";
 import {
   CONNECTION_ID_QUERY,
   DEFAULT_PARTY_PREFIX,
-  SinkdError,
-  SinkdErrorCode,
+  SynkdError,
+  SynkdErrorCode,
   WS_CLOSE_SERVICE_RESTART,
   createHealthReport,
   parsePartyRoute,
   partyRoomKey,
-} from "@sinkd/contracts";
+} from "@synkd/contracts";
+import {
+  handleControlRequest,
+  type AdminGate,
+  type NodeCapabilities,
+  type RoomSnapshot,
+  type RuntimeInspector,
+} from "@synkd/control";
 import {
   MemoryStorage,
   partyNameToBinding,
   type PartyClass,
   type PartyServerOptions,
   type Server,
-} from "@sinkd/server";
+} from "@synkd/server";
 import { AlarmScheduler } from "./alarms.js";
 import { applyCors, resolveCorsHeaders } from "./cors.js";
 import {
@@ -26,12 +33,13 @@ import {
   partyAllowsHibernate,
   type HibernateRoom,
 } from "./hibernate.js";
-import { createLogger, type LogLevel, type SinkdLogger } from "./logger.js";
+import { createLogger, type LogLevel, type SynkdLogger } from "./logger.js";
 import { formatPrometheusMetrics } from "./metrics-text.js";
 import { SlidingWindowLimiter } from "./rate-limit.js";
 import { SqliteStorage } from "./sqlite-storage.js";
+import { envFlag, envString } from "./env.js";
 
-export interface SinkdRuntimeOptions {
+export interface SynkdRuntimeOptions {
   parties: Record<string, PartyClass>;
   /** kebab-case party → PascalCase className overrides */
   bindings?: Record<string, string>;
@@ -49,7 +57,7 @@ export interface SinkdRuntimeOptions {
   /** Fallback for non-party HTTP routes */
   onFetch?: (request: Request) => Response | Promise<Response>;
   /** Structured logger (default: createLogger from env) */
-  logger?: SinkdLogger;
+  logger?: SynkdLogger;
   logLevel?: LogLevel;
   /** Alarm poll interval ms (default 1000; set 0 to disable) */
   alarmIntervalMs?: number;
@@ -60,11 +68,18 @@ export interface SinkdRuntimeOptions {
   roomIdleMs?: number;
   /** Hibernation sweep interval ms (default 5000) */
   hibernateIntervalMs?: number;
+  /** Admin gate for /v1 control API (omit to disable /v1) */
+  adminAuth?: AdminGate;
+  /** Fleet tenant id (v1 default) */
+  tenantId?: string;
+  /** Optional celld caps from probe file */
+  celldCapabilities?: NodeCapabilities["celld"];
 }
 
-export interface SinkdRuntime {
+export interface SynkdRuntime {
   readonly url: string;
   readonly httpServer: HttpServer;
+  readonly inspector: RuntimeInspector;
   listen(): Promise<string>;
   close(): Promise<void>;
 }
@@ -76,7 +91,7 @@ interface RoomHandle extends HibernateRoom {
   hibernate: boolean;
 }
 
-export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
+export function createSynkdRuntime(options: SynkdRuntimeOptions): SynkdRuntime {
   const prefix = options.prefix ?? DEFAULT_PARTY_PREFIX;
   const host = options.host ?? "127.0.0.1";
   const port = options.port ?? 8787;
@@ -94,8 +109,9 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
     createLogger({
       level:
         options.logLevel ??
-        (process.env.SINKD_LOG_LEVEL as LogLevel | undefined) ??
+        (envString("LOG_LEVEL") as LogLevel | undefined) ??
         "info",
+      json: envFlag("LOG_JSON"),
     });
   const metrics = {
     connects: 0,
@@ -143,6 +159,85 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
     handle.lastActive = Date.now();
   }
 
+  function snapshotHandle(handle: RoomHandle): RoomSnapshot {
+    const slash = handle.key.indexOf("/");
+    const party = slash >= 0 ? handle.key.slice(0, slash) : "unknown";
+    const room = slash >= 0 ? handle.key.slice(slash + 1) : handle.key;
+    const tagSet = new Set<string>();
+    for (const conn of handle.server.getConnections()) {
+      for (const tag of conn.tags) tagSet.add(tag);
+    }
+    return {
+      party,
+      room,
+      connections: handle.server.connections.size,
+      lastActive: handle.lastActive,
+      hibernate: handle.hibernate,
+      tags: [...tagSet].slice(0, 32),
+    };
+  }
+
+  async function unloadRoom(key: string): Promise<boolean> {
+    const handle = rooms.get(key);
+    if (!handle) return false;
+    if (handle.server.connections.size > 0) {
+      for (const conn of handle.server.getConnections()) {
+        try {
+          conn.close(WS_CLOSE_SERVICE_RESTART, "hibernate");
+        } catch {
+          // ignore
+        }
+      }
+    }
+    if (handle.storage instanceof SqliteStorage) handle.storage.close();
+    rooms.delete(key);
+    metrics.hibernations += 1;
+    log.info("room.hibernated", { room: key, forced: true });
+    return true;
+  }
+
+  const inspector: RuntimeInspector = {
+    health: () =>
+      createHealthReport({
+        version,
+        startedAt,
+        rooms: rooms.size,
+        connections: countConnections(),
+        metrics: { ...metrics },
+      }),
+    metricsText: () =>
+      formatPrometheusMetrics({
+        version,
+        uptimeMs: Date.now() - startedAt,
+        rooms: rooms.size,
+        connections: countConnections(),
+        metrics: { ...metrics },
+      }),
+    listRooms: () => [...rooms.values()].map(snapshotHandle),
+    async getRoom(party, room) {
+      const handle = rooms.get(partyRoomKey(party, room));
+      if (!handle) return null;
+      const snap = snapshotHandle(handle);
+      const listed = await handle.storage.list({ limit: 500 });
+      snap.storageKeys = listed.size;
+      snap.nextAlarm = (await handle.storage.getAlarm?.()) ?? null;
+      return snap;
+    },
+    async hibernateRoom(party, room) {
+      return unloadRoom(partyRoomKey(party, room));
+    },
+    capabilities: () => ({
+      runtime: "node",
+      alarms: true,
+      hibernation: (options.roomIdleMs ?? 30_000) > 0,
+      metrics: true,
+      yjs: Object.keys(options.parties).some(
+        (p) => p === "docs" || p.toLowerCase().includes("doc"),
+      ),
+      celld: options.celldCapabilities,
+    }),
+  };
+
   function classNameFor(party: string): string {
     return options.bindings?.[party] ?? partyNameToBinding(party);
   }
@@ -168,8 +263,8 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
 
     if (!opts?.skipRateLimit && !activationLimiter.allow(clientKey)) {
       metrics.rateLimited += 1;
-      throw new SinkdError(
-        SinkdErrorCode.ROOM_OVERLOADED,
+      throw new SynkdError(
+        SynkdErrorCode.ROOM_OVERLOADED,
         "Room activation rate limit exceeded",
         429,
       );
@@ -177,8 +272,8 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
 
     const Party = getPartyClass(party);
     if (!Party) {
-      throw new SinkdError(
-        SinkdErrorCode.PARTY_NOT_FOUND,
+      throw new SynkdError(
+        SynkdErrorCode.PARTY_NOT_FOUND,
         `Unknown party: ${party}`,
         404,
       );
@@ -188,7 +283,7 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
       options.storageDir === null
         ? new MemoryStorage()
         : new SqliteStorage(
-            join(options.storageDir ?? ".sinkd/rooms", party, `${room}.sqlite`),
+            join(options.storageDir ?? ".synkd/rooms", party, `${room}.sqlite`),
           );
 
     const server = new Party(room, storage, partyEnv);
@@ -326,7 +421,7 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
             clientKeyFrom(req),
           );
         } catch (error) {
-          if (error instanceof SinkdError && error.status === 429) {
+          if (error instanceof SynkdError && error.status === 429) {
             socket.write(
               "HTTP/1.1 429 Too Many Requests\r\nRetry-After: 60\r\nConnection: close\r\n\r\n",
             );
@@ -368,15 +463,8 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
         }
 
         if (url.pathname === "/healthz" || url.pathname === "/health") {
-          const body = createHealthReport({
-            version,
-            startedAt,
-            rooms: rooms.size,
-            connections: countConnections(),
-            metrics: { ...metrics },
-          });
           const response = applyCors(
-            Response.json(body),
+            Response.json(inspector.health()),
             corsHeaders,
           );
           await writeWebResponse(res, response);
@@ -384,15 +472,8 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
         }
 
         if (url.pathname === "/metrics") {
-          const body = formatPrometheusMetrics({
-            version,
-            uptimeMs: Date.now() - startedAt,
-            rooms: rooms.size,
-            connections: countConnections(),
-            metrics: { ...metrics },
-          });
           const response = applyCors(
-            new Response(body, {
+            new Response(inspector.metricsText(), {
               headers: {
                 "content-type": "text/plain; version=0.0.4; charset=utf-8",
               },
@@ -401,6 +482,21 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
           );
           await writeWebResponse(res, response);
           return;
+        }
+
+        if (options.adminAuth && url.pathname.startsWith("/v1")) {
+          const control = await handleControlRequest(
+            nodeToWebRequest(req, url),
+            {
+              inspector,
+              adminAuth: options.adminAuth,
+              tenantId: options.tenantId ?? "default",
+            },
+          );
+          if (control) {
+            await writeWebResponse(res, applyCors(control, corsHeaders));
+            return;
+          }
         }
 
         metrics.httpRequests += 1;
@@ -443,7 +539,7 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
             clientKeyFrom(req),
           );
         } catch (error) {
-          if (error instanceof SinkdError && error.status === 429) {
+          if (error instanceof SynkdError && error.status === 429) {
             await writeWebResponse(
               res,
               applyCors(
@@ -534,6 +630,7 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
       return listeningUrl;
     },
     httpServer,
+    inspector,
     async listen() {
       await new Promise<void>((resolve, reject) => {
         httpServer.once("error", reject);
@@ -565,7 +662,7 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
       // 1012 → clients (partysocket) reconnect after ownership / process move
       for (const client of wss.clients) {
         try {
-          client.close(WS_CLOSE_SERVICE_RESTART, "sinkd restart");
+          client.close(WS_CLOSE_SERVICE_RESTART, "synkd restart");
         } catch {
           client.terminate();
         }

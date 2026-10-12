@@ -18,7 +18,7 @@ export const PROPS_HEADER = "x-partykit-props";
 
 /**
  * WebSocket close: service restart / ownership move.
- * partysocket reconnects; sinkd uses this on hot-reload and process drain.
+ * partysocket reconnects; synkd uses this on hot-reload and process drain.
  * @see https://www.rfc-editor.org/rfc/rfc6455#section-7.4.1
  */
 export const WS_CLOSE_SERVICE_RESTART = 1012;

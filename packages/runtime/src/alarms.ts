@@ -1,6 +1,6 @@
-import type { Server } from "@sinkd/server";
-import type { RoomStorage } from "@sinkd/server";
-import type { SinkdLogger } from "./logger.js";
+import type { Server } from "@synkd/server";
+import type { RoomStorage } from "@synkd/server";
+import type { SynkdLogger } from "./logger.js";
 
 export type AlarmRoom = {
   key: string;
@@ -15,10 +15,10 @@ export type AlarmRoom = {
 export class AlarmScheduler {
   #timer: NodeJS.Timeout | null = null;
   #rooms: () => Iterable<AlarmRoom>;
-  #log: SinkdLogger;
+  #log: SynkdLogger;
   #firing = new Set<string>();
 
-  constructor(rooms: () => Iterable<AlarmRoom>, log: SinkdLogger) {
+  constructor(rooms: () => Iterable<AlarmRoom>, log: SynkdLogger) {
     this.#rooms = rooms;
     this.#log = log;
   }

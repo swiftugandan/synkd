@@ -4,5 +4,5 @@
     "noEmit": true,
     "rootDir": "src"
   },
-  "include": ["src/**/*.ts", "sinkd.json"]
+  "include": ["src/**/*.ts", "synkd.json"]
 }

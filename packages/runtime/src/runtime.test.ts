@@ -3,16 +3,16 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import WebSocket from "ws";
-import { Server } from "@sinkd/server";
-import { createSinkdRuntime, type SinkdRuntime } from "./create-server.js";
+import { Server } from "@synkd/server";
+import { createSynkdRuntime, type SynkdRuntime } from "./create-server.js";
 
 class Echo extends Server {
-  override onConnect(connection: import("@sinkd/server").Connection) {
+  override onConnect(connection: import("@synkd/server").Connection) {
     connection.send(JSON.stringify({ type: "welcome", room: this.name }));
   }
 
   override async onMessage(
-    sender: import("@sinkd/server").Connection,
+    sender: import("@synkd/server").Connection,
     message: string | ArrayBuffer,
   ) {
     if (typeof message !== "string") return;
@@ -27,8 +27,8 @@ class Echo extends Server {
   }
 }
 
-describe("createSinkdRuntime", () => {
-  let runtime: SinkdRuntime | undefined;
+describe("createSynkdRuntime", () => {
+  let runtime: SynkdRuntime | undefined;
 
   afterEach(async () => {
     await runtime?.close();
@@ -38,7 +38,7 @@ describe("createSinkdRuntime", () => {
   it(
     "broadcasts between two websocket clients and persists HTTP hits",
     async () => {
-      runtime = createSinkdRuntime({
+      runtime = createSynkdRuntime({
         parties: { main: Echo },
         host: "127.0.0.1",
         port: 0,
@@ -85,7 +85,7 @@ describe("createSinkdRuntime", () => {
   );
 
   it("rejects websocket upgrades without lobby token", async () => {
-    runtime = createSinkdRuntime({
+    runtime = createSynkdRuntime({
       parties: { main: Echo },
       host: "127.0.0.1",
       port: 0,
@@ -108,7 +108,7 @@ describe("createSinkdRuntime", () => {
   });
 
   it("exposes Prometheus /metrics text", async () => {
-    runtime = createSinkdRuntime({
+    runtime = createSynkdRuntime({
       parties: { main: Echo },
       host: "127.0.0.1",
       port: 0,
@@ -124,8 +124,8 @@ describe("createSinkdRuntime", () => {
     expect(res.status).toBe(200);
     expect(res.headers.get("content-type")).toContain("text/plain");
     const body = await res.text();
-    expect(body).toContain("sinkd_rooms 1");
-    expect(body).toContain("sinkd_http_requests_total");
+    expect(body).toContain("synkd_rooms 1");
+    expect(body).toContain("synkd_http_requests_total");
   });
 
   it("fires Server.onAlarm via AlarmScheduler", async () => {
@@ -145,7 +145,7 @@ describe("createSinkdRuntime", () => {
       }
     }
 
-    runtime = createSinkdRuntime({
+    runtime = createSynkdRuntime({
       parties: { main: AlarmEcho },
       host: "127.0.0.1",
       port: 0,
@@ -173,8 +173,8 @@ describe("createSinkdRuntime", () => {
     expect(fired).toBeGreaterThanOrEqual(1);
 
     const metrics = await (await fetch(`http://127.0.0.1:${port}/metrics`)).text();
-    expect(metrics).toContain("sinkd_alarms_total");
-    expect(metrics).toMatch(/sinkd_alarms_total [1-9]/);
+    expect(metrics).toContain("synkd_alarms_total");
+    expect(metrics).toMatch(/synkd_alarms_total [1-9]/);
   });
 
   it("hibernates empty rooms and restores SQLite state on wake", async () => {
@@ -187,9 +187,9 @@ describe("createSinkdRuntime", () => {
       }
     }
 
-    const dir = mkdtempSync(join(tmpdir(), "sinkd-hib-"));
+    const dir = mkdtempSync(join(tmpdir(), "synkd-hib-"));
     try {
-      runtime = createSinkdRuntime({
+      runtime = createSynkdRuntime({
         parties: { main: Persist },
         host: "127.0.0.1",
         port: 0,

@@ -1,4 +1,4 @@
-export const SinkdErrorCode = {
+export const SynkdErrorCode = {
   ROUTE_NOT_FOUND: "ROUTE_NOT_FOUND",
   PARTY_NOT_FOUND: "PARTY_NOT_FOUND",
   LOBBY_REJECTED: "LOBBY_REJECTED",
@@ -8,16 +8,16 @@ export const SinkdErrorCode = {
   INTERNAL: "INTERNAL",
 } as const;
 
-export type SinkdErrorCode =
-  (typeof SinkdErrorCode)[keyof typeof SinkdErrorCode];
+export type SynkdErrorCode =
+  (typeof SynkdErrorCode)[keyof typeof SynkdErrorCode];
 
-export class SinkdError extends Error {
-  readonly code: SinkdErrorCode;
+export class SynkdError extends Error {
+  readonly code: SynkdErrorCode;
   readonly status: number;
 
-  constructor(code: SinkdErrorCode, message: string, status = 400) {
+  constructor(code: SynkdErrorCode, message: string, status = 400) {
     super(message);
-    this.name = "SinkdError";
+    this.name = "SynkdError";
     this.code = code;
     this.status = status;
   }

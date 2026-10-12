@@ -6,11 +6,11 @@ import { watchPartySources } from "./watch-parties.js";
 
 describe("watchPartySources", () => {
   it("fires on party source change", async () => {
-    const root = join(tmpdir(), `sinkd-watch-${Date.now()}`);
+    const root = join(tmpdir(), `synkd-watch-${Date.now()}`);
     mkdirSync(join(root, "src"), { recursive: true });
     const entry = join(root, "src", "chat.ts");
     writeFileSync(entry, "export class Chat {}\n");
-    const configPath = join(root, "sinkd.json");
+    const configPath = join(root, "synkd.json");
     writeFileSync(configPath, '{"name":"t","parties":{"main":{"entry":"./src/chat.ts"}}}');
 
     const reasons: string[] = [];

@@ -1,4 +1,4 @@
-import { Server, type Connection } from "@sinkd/server";
+import { Server, type Connection } from "@synkd/server";
 
 type ChatInbound =
   | { type: "chat"; text: string; name?: string }

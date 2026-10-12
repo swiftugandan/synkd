@@ -1,12 +1,12 @@
 export {
-  createSinkdRuntime,
-  type SinkdRuntime,
-  type SinkdRuntimeOptions,
+  createSynkdRuntime,
+  type SynkdRuntime,
+  type SynkdRuntimeOptions,
 } from "./create-server.js";
 export { SqliteStorage } from "./sqlite-storage.js";
 export { applyCors, resolveCorsHeaders } from "./cors.js";
 export { SlidingWindowLimiter } from "./rate-limit.js";
-export { createLogger, type LogLevel, type SinkdLogger } from "./logger.js";
+export { createLogger, type LogLevel, type SynkdLogger } from "./logger.js";
 export { AlarmScheduler, type AlarmRoom } from "./alarms.js";
 export { formatPrometheusMetrics } from "./metrics-text.js";
 export {

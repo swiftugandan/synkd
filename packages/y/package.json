@@ -1,7 +1,7 @@
 {
-  "name": "@sinkd/y",
+  "name": "@synkd/y",
   "version": "0.1.0",
-  "description": "Yjs / y-websocket party server for sinkd",
+  "description": "Yjs / y-websocket party server for synkd",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
@@ -24,7 +24,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@sinkd/server": "workspace:*",
+    "@synkd/server": "workspace:*",
     "lib0": "^0.2.114",
     "y-protocols": "^1.0.6",
     "yjs": "^13.6.27"

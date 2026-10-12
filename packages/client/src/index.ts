@@ -4,7 +4,7 @@ import {
   DEFAULT_PARTY_NAME,
   DEFAULT_PARTY_PREFIX,
   WS_CLOSE_SERVICE_RESTART,
-} from "@sinkd/contracts";
+} from "@synkd/contracts";
 
 export { PartySocket };
 export {
@@ -14,7 +14,7 @@ export {
   WS_CLOSE_SERVICE_RESTART,
 };
 
-export interface SinkdSocketOptions {
+export interface SynkdSocketOptions {
   host: string;
   room: string;
   party?: string;
@@ -25,8 +25,8 @@ export interface SinkdSocketOptions {
   [key: string]: unknown;
 }
 
-/** Create a PartySocket pointed at a sinkd host (PartyKit-compatible). */
-export function createSinkdSocket(options: SinkdSocketOptions): PartySocket {
+/** Create a PartySocket pointed at a synkd host (PartyKit-compatible). */
+export function createSynkdSocket(options: SynkdSocketOptions): PartySocket {
   const { host, room, party = DEFAULT_PARTY_NAME, ...rest } = options;
   return new PartySocket({
     host,

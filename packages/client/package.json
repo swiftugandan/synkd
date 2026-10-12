@@ -1,5 +1,5 @@
 {
-  "name": "@sinkd/client",
+  "name": "@synkd/client",
   "version": "0.1.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -19,14 +19,14 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@sinkd/contracts": "workspace:*",
+    "@synkd/contracts": "workspace:*",
     "partysocket": "^1.3.0"
   },
   "devDependencies": {
     "typescript": "^5.9.3",
     "vitest": "^3.2.4"
   },
-  "description": "Thin partysocket helpers for sinkd hosts",
+  "description": "Thin partysocket helpers for synkd hosts",
   "license": "MIT",
   "publishConfig": {
     "access": "public"

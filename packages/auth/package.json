@@ -1,5 +1,5 @@
 {
-  "name": "@sinkd/auth",
+  "name": "@synkd/auth",
   "version": "0.1.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -19,14 +19,14 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@sinkd/contracts": "workspace:*",
+    "@synkd/contracts": "workspace:*",
     "jose": "^6.1.0"
   },
   "devDependencies": {
     "typescript": "^5.9.3",
     "vitest": "^3.2.4"
   },
-  "description": "Lobby auth helpers (shared token + JWT) for sinkd",
+  "description": "Lobby auth helpers (shared token + JWT) for synkd",
   "license": "MIT",
   "publishConfig": {
     "access": "public"

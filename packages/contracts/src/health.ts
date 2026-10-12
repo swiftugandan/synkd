@@ -12,7 +12,7 @@ export interface HealthMetrics {
 
 export interface HealthReport {
   readonly ok: true;
-  readonly service: "sinkd";
+  readonly service: "synkd";
   readonly version: string;
   readonly uptimeMs: number;
   readonly rooms: number;
@@ -29,7 +29,7 @@ export function createHealthReport(input: {
 }): HealthReport {
   return {
     ok: true,
-    service: "sinkd",
+    service: "synkd",
     version: input.version,
     uptimeMs: Date.now() - input.startedAt,
     rooms: input.rooms,

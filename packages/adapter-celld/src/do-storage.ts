@@ -1,4 +1,4 @@
-import type { RoomStorage } from "@sinkd/server";
+import type { RoomStorage } from "@synkd/server";
 
 /** Minimal Durable Object storage surface used by the adapter. */
 export interface DoStorage {
@@ -17,7 +17,7 @@ export interface DoStorage {
   deleteAlarm?(): Promise<void>;
 }
 
-/** Adapts Cloudflare / celld Durable Object storage to sinkd RoomStorage. */
+/** Adapts Cloudflare / celld Durable Object storage to synkd RoomStorage. */
 export class DoStorageAdapter implements RoomStorage {
   constructor(private readonly storage: DoStorage) {}
 

@@ -1,5 +1,5 @@
-import type { Server } from "@sinkd/server";
-import type { SinkdLogger } from "./logger.js";
+import type { Server } from "@synkd/server";
+import type { SynkdLogger } from "./logger.js";
 import { SqliteStorage } from "./sqlite-storage.js";
 
 export type HibernateRoom = {
@@ -18,13 +18,13 @@ export type HibernateRoom = {
 export class RoomHibernator {
   #timer: NodeJS.Timeout | null = null;
   #rooms: () => Map<string, HibernateRoom>;
-  #log: SinkdLogger;
+  #log: SynkdLogger;
   #idleMs: number;
   #onHibernate: (key: string) => void;
 
   constructor(
     rooms: () => Map<string, HibernateRoom>,
-    log: SinkdLogger,
+    log: SynkdLogger,
     options: {
       idleMs?: number;
       onHibernate?: (key: string) => void;

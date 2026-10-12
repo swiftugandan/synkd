@@ -1,11 +1,12 @@
-# sinkd
+# synkd
 
-Self-hosted **PartyKit-compatible** realtime rooms.
+Self-hosted **PartyKit-compatible** realtime rooms — production-shaped Node runtime, optional celld fleets, guest **Studio**, and operator **Console**.
 
-Party classes use the PartyServer programming model (`onConnect`, `onMessage`, `broadcast`, tags, dual HTTP + WebSocket). Locally, `@sinkd/runtime` runs sticky room actors on Node with SQLite. On Linux/ARM64 fleets, the same mental model deploys onto [celld](https://celld.dev/docs/) (self-hosted Durable Objects).
+Formerly prototyped as `sinkd`; the Party URL shape `/parties/:party/:room` and `partysocket` clients are unchanged.
 
 ```
-Browser (partysocket) → /parties/:party/:room → room actor → durable storage
+Browser (Studio / apps) → /parties/:party/:room → room actor → durable storage
+Operator (Console)      → /v1/* (admin)         → runtime inspector
 ```
 
 ## Quick start
@@ -17,76 +18,52 @@ pnpm doctor
 pnpm dev          # hot-reloads party sources; --no-watch to disable
 ```
 
-In another terminal:
+In other terminals:
 
 ```sh
-pnpm dev:studio
+pnpm dev:studio    # http://127.0.0.1:5173
+pnpm dev:console   # http://127.0.0.1:5174  (admin token: dev-admin)
 ```
 
-Open the Studio URL Vite prints (`http://127.0.0.1:5173` by default) — enter a room, open a second tab, send messages. Use `?surface=pad` for the Yjs notepad (`/parties/docs/:room`).
+Or all at once: `pnpm dev:all`.
 
-Default lobby token: `dev-token` (see `apps/parties/sinkd.json`). JWT lobby auth is supported via `auth.jwtSecret`.
+Default guest token: `dev-token`. Admin token: `dev-admin` (see `apps/parties/synkd.json`). Legacy `sinkd.json` is still resolved if `synkd.json` is absent.
 
 ## Packages
 
 | Package | Role |
 | --- | --- |
-| `@sinkd/contracts` | URL shape, tag limits, errors |
-| `@sinkd/server` | PartyServer-compatible `Server` / `Connection` |
-| `@sinkd/runtime` | Node HTTP + WebSocket host, SQLite rooms |
-| `@sinkd/auth` | Shared-token + JWT lobby gates, origin allowlists |
-| `@sinkd/adapter-celld` | Durable Object host + `routeSinkdRequest` for celld |
-| `@sinkd/config` | `sinkd.json` → wrangler bindings |
-| `@sinkd/cli` | `sinkd init` / `dev` / `deploy` / `doctor` |
-| `@sinkd/client` | thin `partysocket` helpers |
-| `@sinkd/y` | `YjsServer` (y-websocket sync + awareness) |
-| `@sinkd/studio` | brand + live chat / Yjs pad UI |
-| `@sinkd/parties` | example Chat, Presence, Docs parties |
+| `@synkd/contracts` | URL shape, tag limits, errors |
+| `@synkd/server` | PartyServer-compatible `Server` / `Connection` |
+| `@synkd/runtime` | Node HTTP + WebSocket host, SQLite rooms, `/v1` mount |
+| `@synkd/control` | Operator control API router + `RuntimeInspector` |
+| `@synkd/auth` | Guest lobby + admin gates |
+| `@synkd/adapter-celld` | Durable Object host for celld |
+| `@synkd/config` | `synkd.json` → wrangler bindings |
+| `@synkd/cli` | `synkd init` / `dev` / `deploy` / `doctor` |
+| `@synkd/client` | thin `partysocket` helpers |
+| `@synkd/y` | `YjsServer` (y-websocket sync + awareness) |
+| `@synkd/ui` | Shared brand tokens |
+| `@synkd/studio` | Guest chat / Yjs pad |
+| `@synkd/console` | Operator console |
+| `@synkd/parties` | example Chat, Presence, Docs parties |
 
-## CLI
+## Ops
 
-```sh
-pnpm doctor
-pnpm --filter @sinkd/cli exec tsx src/bin.ts init ./my-app
-pnpm --filter @sinkd/cli exec tsx src/bin.ts dev --root ./my-app
-pnpm --filter @sinkd/cli exec tsx src/bin.ts deploy --config ./my-app/sinkd.json
-```
+- `GET /healthz` — JSON health
+- `GET /metrics` — Prometheus text
+- `GET /v1/health|rooms|capabilities|metrics` — admin Bearer required
+- `POST /v1/rooms/:party/:room/hibernate` — force unload
+
+TLS fleet ingress: [`deploy/README.md`](./deploy/README.md). Security model: [`SECURITY.md`](./SECURITY.md). Multi-tenant pathway: [`docs/multi-tenant-path.md`](./docs/multi-tenant-path.md).
 
 ## celld fleets
 
-Darwin x86_64 has no celld prebuild. Local DX uses `@sinkd/runtime`. Fleets use **Podman** (preferred) or Docker. Full TLS + sticky ingress: [`deploy/README.md`](./deploy/README.md).
+Darwin x86_64 has no celld prebuild. Local DX uses `@synkd/runtime`. Fleets use **Podman** (preferred) or Docker:
 
 ```sh
-pnpm celld:spike              # resolves podman → docker
-./scripts/compose.sh up -d    # set CELLD_BUCKET first
+pnpm celld:spike
+./scripts/compose.sh up -d
 ```
 
-Override the runtime with `CONTAINER_CLI=podman` or `CONTAINER_CLI=docker`.
-
-Local MinIO overlay (experimental — not celld-qualified for production):
-
-```sh
-pnpm fleet:smoke   # MinIO up + celld deploy on compose network
-pnpm fleet:minio   # compose up only
-```
-
-Studio can target Node (`?backend=node`) or celld (`?backend=celld` on `:9876`).
-
-```sh
-pnpm test:e2e      # Playwright two-tab chat
-```
-
-Compatibility matrix: `docs/compat.md`. Yjs pads: `docs/yjs.md`.
-
-Ops: `GET /healthz` (JSON) and `GET /metrics` (Prometheus text).
-
-## Docs
-
-- `VISION.md` · `SPEC.md` · `SAD.md` · `CONTRACTS.md` · `PLAN.md`
-- Research report: `../reports/Sinkd Celld PartyKit design.md`
-
-## Tests
-
-```sh
-pnpm test
-```
+Compatibility: `docs/compat.md`. Yjs: `docs/yjs.md`.

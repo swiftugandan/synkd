@@ -4,7 +4,7 @@
 
 ## Problem statement
 
-PartyKit packaged Durable Object rooms behind `/parties/:party/:room` and `partysocket`. The managed `*.partykit.dev` platform is shutting down on a fixed October 2026 schedule; PartyServer on Cloudflare Workers is the official successor, but operators who need self-hosted Durable Objects lack a PartyKit-shaped DX on Deno celld / owned machines. sinkd closes that gap.
+PartyKit packaged Durable Object rooms behind `/parties/:party/:room` and `partysocket`. The managed `*.partykit.dev` platform is shutting down on a fixed October 2026 schedule; PartyServer on Cloudflare Workers is the official successor, but operators who need self-hosted Durable Objects lack a PartyKit-shaped DX on Deno celld / owned machines. synkd closes that gap.
 
 ## Functional requirements
 
@@ -22,7 +22,7 @@ PartyKit packaged Durable Object rooms behind `/parties/:party/:room` and `party
   - *Source:* PartyServer `PartyServerOptions`.
 - **FR-7:** Unmodified `partysocket` clients connect by changing `host` only.
   - *Source:* [PartySocket API](https://docs.partykit.io/reference/partysocket-api/).
-- **FR-8:** CLI: `sinkd init`, `sinkd dev`, `sinkd deploy` (deploy wraps celld when available; otherwise emits deploy artifacts).
+- **FR-8:** CLI: `synkd init`, `synkd dev`, `synkd deploy` (deploy wraps celld when available; otherwise emits deploy artifacts).
   - *Rationale:* PartyKit DX parity for self-host operators.
 - **FR-9:** Studio web app demonstrates landing + live multi-user room with professional UI/UX.
 
@@ -55,12 +55,12 @@ PartyKit packaged Durable Object rooms behind `/parties/:party/:room` and `party
 
 ### Operability
 
-- **NFR-OPS-1:** `sinkd dev` hot-reloads party modules on change.
+- **NFR-OPS-1:** `synkd dev` hot-reloads party modules on change.
 - **NFR-OPS-2:** Docker Compose template for celld + TLS ingress documented under `deploy/`.
 
 ## Non-goals
 
-- **NG-1:** Cloning `*.partykit.dev` control plane / preview hosts — *because* PartyKit cloud is shutting down; sinkd is self-host DX.
+- **NG-1:** Cloning `*.partykit.dev` control plane / preview hosts — *because* PartyKit cloud is shutting down; synkd is self-host DX.
 - **NG-2:** Workers AI, Vectorize, Hyperdrive, Browser Rendering, Email parity — *because* celld does not implement Cloudflare edge services.
 - **NG-3:** Hostile multi-tenant isolation inside one fleet — *because* celld forbids it; use fleet-per-tenant.
 - **NG-4:** A new client wire protocol — *because* `partysocket` already works against any WS server with the Party URL shape.
@@ -74,9 +74,9 @@ PartyKit packaged Durable Object rooms behind `/parties/:party/:room` and `party
 
 ## Open questions
 
-- [x] Local runtime without celld? → Yes: `@sinkd/runtime` (Node).
-- [x] Depend on `partyserver` npm for Node? → No — Cloudflare DO base; sinkd reimplements compatible surface in `@sinkd/server`.
-- [x] Exact celld `getTags` support — probed **true** on celld 0.6.2 via Podman (`?sinkd_caps=1`); Node still userland tags.
+- [x] Local runtime without celld? → Yes: `@synkd/runtime` (Node).
+- [x] Depend on `partyserver` npm for Node? → No — Cloudflare DO base; synkd reimplements compatible surface in `@synkd/server`.
+- [x] Exact celld `getTags` support — probed **true** on celld 0.6.2 via Podman (`?synkd_caps=1`); Node still userland tags.
 
 ## Confidence self-assessment
 

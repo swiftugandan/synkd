@@ -9,11 +9,11 @@ Browser (partysocket / Studio) ──TLS──▶ Ingress (optional Caddy)
                                          │
                     ┌────────────────────┴────────────────────┐
                     ▼                                         ▼
-            sinkd Node runtime                         celld fleet (Linux)
-            (@sinkd/runtime)                           Durable Object cells
+            synkd Node runtime                         celld fleet (Linux)
+            (@synkd/runtime)                           Durable Object cells
                     │                                         │
                     └────────── same party class code ────────┘
-                               (@sinkd/server Server API)
+                               (@synkd/server Server API)
 ```
 
 External actors: application users (browsers), operators (CLI/deploy), optional object storage (celld fleets).
@@ -26,7 +26,7 @@ External actors: application users (browsers), operators (CLI/deploy), optional 
 
 ### Out-of-band concerns
 
-- Node path: SQLite files under `.sinkd/rooms/` (configurable).
+- Node path: SQLite files under `.synkd/rooms/` (configurable).
 - celld path: per-cell SQLite + S3/GCS/Azure bucket leases.
 - Studio is a static SPA talking to the runtime over WS/HTTP.
 
@@ -36,12 +36,12 @@ External actors: application users (browsers), operators (CLI/deploy), optional 
 
 | Component | Owns | Speaks to |
 | --- | --- | --- |
-| `@sinkd/contracts` | Protocol types, limits, errors | everyone |
-| `@sinkd/server` | `Server` base, `Connection`, room storage interface | runtime, parties |
-| `@sinkd/runtime` | HTTP/WS server, room registry, sticky routing, SQLite | server, contracts |
-| `@sinkd/config` | `sinkd.json` → runtime + wrangler codegen | cli |
-| `@sinkd/cli` | init / dev / deploy UX | config, runtime |
-| `@sinkd/client` | thin helpers over partysocket | Studio, apps |
+| `@synkd/contracts` | Protocol types, limits, errors | everyone |
+| `@synkd/server` | `Server` base, `Connection`, room storage interface | runtime, parties |
+| `@synkd/runtime` | HTTP/WS server, room registry, sticky routing, SQLite | server, contracts |
+| `@synkd/config` | `synkd.json` → runtime + wrangler codegen | cli |
+| `@synkd/cli` | init / dev / deploy UX | config, runtime |
+| `@synkd/client` | thin helpers over partysocket | Studio, apps |
 | `apps/parties` | Example Chat party | server |
 | `apps/studio` | Marketing + live demo UI | runtime via client |
 | `deploy/` | Compose + Caddy for celld fleets | operators |
@@ -63,7 +63,7 @@ External actors: application users (browsers), operators (CLI/deploy), optional 
 
 **Failure modes.** Parse failures return typed `RouteError`; never throw across process boundaries for bad paths.
 
-**Contracts produced.** `PartyRoute`, `TagPolicy`, `HealthReport`, `SinkdErrorCode`.
+**Contracts produced.** `PartyRoute`, `TagPolicy`, `HealthReport`, `SynkdErrorCode`.
 
 ### server
 
@@ -89,7 +89,7 @@ External actors: application users (browsers), operators (CLI/deploy), optional 
 
 **Responsibility.** Project scaffolding, dev server orchestration, deploy artifact / celld wrap.
 
-**Failure modes.** Missing `sinkd.json` → actionable error; celld missing → deploy prints Docker instructions.
+**Failure modes.** Missing `synkd.json` → actionable error; celld missing → deploy prints Docker instructions.
 
 ### studio
 

@@ -1,4 +1,4 @@
-import { Server, type Connection } from "@sinkd/server";
+import { Server, type Connection } from "@synkd/server";
 
 /**
  * Lightweight presence party — one room tracks who is online.

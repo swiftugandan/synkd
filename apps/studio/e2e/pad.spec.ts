@@ -20,8 +20,8 @@ test("two tabs sync Yjs pad text", async ({ browser }) => {
     { timeout: 15_000 },
   );
 
-  const padA = pageA.locator("#sinkd-pad");
-  const padB = pageB.locator("#sinkd-pad");
+  const padA = pageA.locator("#synkd-pad");
+  const padB = pageB.locator("#synkd-pad");
   await expect(padA).toBeEnabled({ timeout: 10_000 });
   await padA.fill("shared brine notes");
 

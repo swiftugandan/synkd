@@ -8,7 +8,7 @@ import {
 } from "y-protocols/awareness";
 import * as sync from "y-protocols/sync";
 import * as Y from "yjs";
-import { Server, type Connection, type WSMessage } from "@sinkd/server";
+import { Server, type Connection, type WSMessage } from "@synkd/server";
 
 const MSG_SYNC = 0;
 const MSG_AWARENESS = 1;

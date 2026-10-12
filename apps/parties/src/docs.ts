@@ -1,4 +1,4 @@
-import { YjsServer } from "@sinkd/y";
+import { YjsServer } from "@synkd/y";
 
 /** Collaborative document party — y-websocket binary protocol. */
 export class Docs extends YjsServer {

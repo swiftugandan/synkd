@@ -1,10 +1,10 @@
 /**
  * celld / workerd Worker entry.
- * Local DX: `sinkd dev` loads parties via @sinkd/runtime.
+ * Local DX: `synkd dev` loads parties via @synkd/runtime.
  * Fleet: `celld deploy` runs this Worker with Durable Object bindings.
  */
-import { createDurableParty, routeSinkdRequest } from "@sinkd/adapter-celld";
-import { createLobbyAuth } from "@sinkd/auth";
+import { createDurableParty, routeSynkdRequest } from "@synkd/adapter-celld";
+import { createLobbyAuth } from "@synkd/auth";
 import { Chat } from "./chat.js";
 import { Docs } from "./docs.js";
 import { Presence } from "./presence.js";
@@ -21,7 +21,7 @@ export default {
     env: Record<string, unknown>,
   ): Promise<Response> {
     return (
-      (await routeSinkdRequest(request, env as never, {
+      (await routeSynkdRequest(request, env as never, {
         bindings: {
           main: "ChatDO",
           presence: "PresenceDO",

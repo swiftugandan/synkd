@@ -3,7 +3,7 @@ import * as decoding from "lib0/decoding";
 import * as encoding from "lib0/encoding";
 import * as sync from "y-protocols/sync";
 import * as Y from "yjs";
-import { MemoryStorage } from "@sinkd/server";
+import { MemoryStorage } from "@synkd/server";
 import { YjsServer } from "./yjs-server.js";
 
 const MSG_SYNC = 0;

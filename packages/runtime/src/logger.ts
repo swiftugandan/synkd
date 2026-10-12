@@ -1,6 +1,6 @@
 export type LogLevel = "debug" | "info" | "warn" | "error";
 
-export interface SinkdLogger {
+export interface SynkdLogger {
   debug(msg: string, fields?: Record<string, unknown>): void;
   info(msg: string, fields?: Record<string, unknown>): void;
   warn(msg: string, fields?: Record<string, unknown>): void;
@@ -18,10 +18,12 @@ export function createLogger(options?: {
   service?: string;
   level?: LogLevel;
   json?: boolean;
-}): SinkdLogger {
-  const service = options?.service ?? "sinkd";
+}): SynkdLogger {
+  const service = options?.service ?? "synkd";
   const min = LEVEL_ORDER[options?.level ?? "info"];
-  const json = options?.json ?? process.env.SINKD_LOG_JSON === "1";
+  const json =
+    options?.json ??
+    (process.env.SYNKD_LOG_JSON === "1" || process.env.SINKD_LOG_JSON === "1");
 
   const write = (level: LogLevel, msg: string, fields?: Record<string, unknown>) => {
     if (LEVEL_ORDER[level] < min) return;

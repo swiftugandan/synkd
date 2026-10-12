@@ -114,11 +114,12 @@ export function App() {
       </div>
 
       <header className="topbar">
-        <div className="brand" aria-label="sinkd">
-          sink<span>d</span>
+        <div className="brand" aria-label="synkd">
+          synk<span>d</span>
           <span className="brand-meta">self-hosted rooms</span>
         </div>
         <nav className="top-links" aria-label="References">
+          <a href="http://127.0.0.1:5174/">Console</a>
           <a href="https://celld.dev/docs/" target="_blank" rel="noreferrer">
             celld
           </a>
@@ -131,7 +132,7 @@ export function App() {
       <main className="hero">
         <section className="hero-copy">
           <h1>
-            sink<span className="signal">d</span>
+            synk<span className="signal">d</span>
           </h1>
           <p>
             PartyKit-shaped rooms on machines you own. Sticky actors, durable
@@ -323,18 +324,13 @@ export function App() {
 
       <p className="foot">
         {backend === "celld"
-          ? "celld via Podman (pnpm celld:spike / SINKD_SPIKE_KEEP=1)"
+          ? "celld via Podman (pnpm celld:spike / SYNKD_SPIKE_KEEP=1)"
           : "Node runtime locally"}{" "}
         · host {host}
         {" · "}
-        <a
-          href="https://celld.dev/docs/"
-          target="_blank"
-          rel="noreferrer"
-          title="Fleet TLS ingress lives in deploy/README.md"
-        >
-          fleet docs
-        </a>
+        <a href="http://127.0.0.1:5174/">console</a>
+        {" · "}
+        fleet: deploy/README.md
       </p>
     </div>
   );

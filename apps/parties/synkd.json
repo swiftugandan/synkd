@@ -1,0 +1,29 @@
+{
+  "name": "synkd-chat",
+  "port": 8787,
+  "host": "127.0.0.1",
+  "parties": {
+    "main": {
+      "entry": "./src/chat.ts",
+      "export": "Chat",
+      "className": "ChatDO"
+    },
+    "presence": {
+      "entry": "./src/presence.ts",
+      "export": "Presence",
+      "className": "PresenceDO"
+    },
+    "docs": {
+      "entry": "./src/docs.ts",
+      "export": "Docs",
+      "className": "DocsDO"
+    }
+  },
+  "auth": {
+    "token": "dev-token",
+    "adminToken": "dev-admin"
+  },
+  "tenantId": "default",
+  "cors": true,
+  "storageDir": ".synkd/rooms"
+}

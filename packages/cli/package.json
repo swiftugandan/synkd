@@ -1,9 +1,9 @@
 {
-  "name": "@sinkd/cli",
+  "name": "@synkd/cli",
   "version": "0.1.0",
   "type": "module",
   "bin": {
-    "sinkd": "./dist/bin.js"
+    "synkd": "./dist/bin.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -22,10 +22,10 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@sinkd/auth": "workspace:*",
-    "@sinkd/config": "workspace:*",
-    "@sinkd/runtime": "workspace:*",
-    "@sinkd/server": "workspace:*",
+    "@synkd/auth": "workspace:*",
+    "@synkd/config": "workspace:*",
+    "@synkd/runtime": "workspace:*",
+    "@synkd/server": "workspace:*",
     "commander": "^14.0.1",
     "tsx": "^4.20.6"
   },
@@ -34,7 +34,7 @@
     "typescript": "^5.9.3",
     "vitest": "^3.2.4"
   },
-  "description": "sinkd CLI — init, dev, deploy, doctor",
+  "description": "synkd CLI — init, dev, deploy, doctor",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
