@@ -32,10 +32,18 @@ interface RoomProps {
   room: string;
   token: string;
   displayName?: string;
+  backend?: "node" | "celld";
   onLeave: () => void;
 }
 
-export function Room({ host, room, token, displayName, onLeave }: RoomProps) {
+export function Room({
+  host,
+  room,
+  token,
+  displayName,
+  backend = "node",
+  onLeave,
+}: RoomProps) {
   const [status, setStatus] = useState<ConnState>("connecting");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [roster, setRoster] = useState<RosterEntry[]>([]);
@@ -129,6 +137,7 @@ export function Room({ host, room, token, displayName, onLeave }: RoomProps) {
       <div className="room-toolbar">
         <div className="room-id">
           room <strong>{room}</strong>
+          <span className="room-stat"> · {backend}</span>
           {messageCount > 0 ? (
             <span className="room-stat"> · {messageCount} persisted</span>
           ) : null}

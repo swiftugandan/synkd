@@ -3,6 +3,8 @@ import { Room } from "./Room";
 
 const DEFAULT_TOKEN = "dev-token";
 
+type Backend = "node" | "celld";
+
 function randomRoom(): string {
   const adjectives = ["brine", "coral", "drift", "kelp", "tidal", "abyss"];
   const nouns = ["hall", "bay", "well", "cell", "node", "sink"];
@@ -11,24 +13,58 @@ function randomRoom(): string {
   return `${a}-${n}-${Math.floor(Math.random() * 90 + 10)}`;
 }
 
-function studioHost(): string {
-  if (typeof window === "undefined") return "127.0.0.1:8787";
+function readQuery(): { room?: string; backend?: Backend; name?: string } {
+  if (typeof window === "undefined") return {};
+  const q = new URLSearchParams(window.location.search);
+  const backend = q.get("backend");
+  return {
+    room: q.get("room") ?? undefined,
+    name: q.get("name") ?? undefined,
+    backend: backend === "celld" || backend === "node" ? backend : undefined,
+  };
+}
+
+function studioHost(backend: Backend): string {
+  if (typeof window === "undefined") {
+    return backend === "celld" ? "127.0.0.1:9876" : "127.0.0.1:8787";
+  }
+  if (backend === "celld") return "127.0.0.1:9876";
   const { host, port } = window.location;
-  // Vite dev (517x) proxies /parties → runtime
   if (port.startsWith("517")) return host;
   return "127.0.0.1:8787";
 }
 
 export function App() {
-  const [room, setRoom] = useState(() => randomRoom());
-  const [joined, setJoined] = useState(false);
-  const [name, setName] = useState("");
+  const initial = useMemo(() => readQuery(), []);
+  const [room, setRoom] = useState(() => initial.room || randomRoom());
+  const [joined, setJoined] = useState(() => Boolean(initial.room));
+  const [name, setName] = useState(initial.name ?? "");
+  const [backend, setBackend] = useState<Backend>(initial.backend ?? "node");
   const [copied, setCopied] = useState(false);
-  const host = useMemo(() => studioHost(), []);
+  const host = useMemo(() => studioHost(backend), [backend]);
+
+  function syncUrl(next: {
+    room: string;
+    backend: Backend;
+    name: string;
+    joined: boolean;
+  }) {
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    if (next.joined) url.searchParams.set("room", next.room);
+    else url.searchParams.delete("room");
+    url.searchParams.set("backend", next.backend);
+    if (next.name) url.searchParams.set("name", next.name);
+    else url.searchParams.delete("name");
+    window.history.replaceState({}, "", url);
+  }
 
   async function copyInvite() {
-    const url = `${window.location.origin}${window.location.pathname}?room=${encodeURIComponent(room)}`;
-    await navigator.clipboard.writeText(url);
+    const url = new URL(window.location.href);
+    url.searchParams.set("room", room);
+    url.searchParams.set("backend", backend);
+    if (name) url.searchParams.set("name", name);
+    await navigator.clipboard.writeText(url.toString());
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1600);
   }
@@ -66,7 +102,6 @@ export function App() {
           <span className="brand-meta">self-hosted rooms</span>
         </div>
         <nav className="top-links" aria-label="References">
-          <a href="../docs/compat.md">Compat</a>
           <a href="https://celld.dev/docs/" target="_blank" rel="noreferrer">
             celld
           </a>
@@ -90,7 +125,10 @@ export function App() {
               <button
                 type="button"
                 className="btn btn-primary"
-                onClick={() => setJoined(true)}
+                onClick={() => {
+                  setJoined(true);
+                  syncUrl({ room, backend, name, joined: true });
+                }}
               >
                 Open a room
               </button>
@@ -100,13 +138,24 @@ export function App() {
                   type="button"
                   className="btn btn-ghost"
                   onClick={() => {
+                    const next = randomRoom();
                     setJoined(false);
-                    setRoom(randomRoom());
+                    setRoom(next);
+                    syncUrl({
+                      room: next,
+                      backend,
+                      name,
+                      joined: false,
+                    });
                   }}
                 >
                   New room
                 </button>
-                <button type="button" className="btn btn-ghost" onClick={() => void copyInvite()}>
+                <button
+                  type="button"
+                  className="btn btn-ghost"
+                  onClick={() => void copyInvite()}
+                >
                   {copied ? "Link copied" : "Copy invite"}
                 </button>
               </>
@@ -116,7 +165,10 @@ export function App() {
             </a>
           </div>
           <p className="hero-protocol">
-            <code>/parties/main/{room}</code>
+            <code>
+              /parties/main/{room}
+            </code>
+            <span className="hero-backend"> via {backend}</span>
           </p>
         </section>
 
@@ -127,12 +179,40 @@ export function App() {
               onSubmit={(e) => {
                 e.preventDefault();
                 setJoined(true);
+                syncUrl({ room, backend, name, joined: true });
               }}
             >
               <p className="join-lede">
-                Enter a room id. Open the same id in another tab to see
+                Enter a room id. Open the same invite link in another tab to see
                 broadcast fan-out.
               </p>
+              <fieldset className="backend-field">
+                <legend>Runtime</legend>
+                <label className="backend-option">
+                  <input
+                    type="radio"
+                    name="backend"
+                    checked={backend === "node"}
+                    onChange={() => {
+                      setBackend("node");
+                      syncUrl({ room, backend: "node", name, joined });
+                    }}
+                  />
+                  Node <span className="muted">:8787</span>
+                </label>
+                <label className="backend-option">
+                  <input
+                    type="radio"
+                    name="backend"
+                    checked={backend === "celld"}
+                    onChange={() => {
+                      setBackend("celld");
+                      syncUrl({ room, backend: "celld", name, joined });
+                    }}
+                  />
+                  celld <span className="muted">:9876</span>
+                </label>
+              </fieldset>
               <label>
                 Display name
                 <input
@@ -161,18 +241,26 @@ export function App() {
             </form>
           ) : (
             <Room
+              key={`${backend}:${room}`}
               host={host}
               room={room}
               token={DEFAULT_TOKEN}
               displayName={name || undefined}
-              onLeave={() => setJoined(false)}
+              backend={backend}
+              onLeave={() => {
+                setJoined(false);
+                syncUrl({ room, backend, name, joined: false });
+              }}
             />
           )}
         </section>
       </main>
 
       <p className="foot">
-        Node runtime locally · celld fleets via Docker · host {host}
+        {backend === "celld"
+          ? "celld via Podman (pnpm celld:spike / SINKD_SPIKE_KEEP=1)"
+          : "Node runtime locally"}{" "}
+        · host {host}
       </p>
     </div>
   );
