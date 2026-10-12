@@ -11,7 +11,8 @@
     "@sinkd/adapter-celld": "workspace:*",
     "@sinkd/auth": "workspace:*",
     "@sinkd/cli": "workspace:*",
-    "@sinkd/server": "workspace:*"
+    "@sinkd/server": "workspace:*",
+    "@sinkd/y": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.9.3"

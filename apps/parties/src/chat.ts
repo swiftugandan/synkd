@@ -13,7 +13,7 @@ type PartyEnv = {
 };
 
 export class Chat extends Server<PartyEnv> {
-  static options = { hibernate: true };
+  static override options = { hibernate: true };
 
   override getConnectionTags(): string[] {
     return ["chat"];

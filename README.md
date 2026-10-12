@@ -23,7 +23,7 @@ In another terminal:
 pnpm dev:studio
 ```
 
-Open the Studio URL Vite prints (`http://127.0.0.1:5173` by default) — enter a room, open a second tab, send messages.
+Open the Studio URL Vite prints (`http://127.0.0.1:5173` by default) — enter a room, open a second tab, send messages. Use `?surface=pad` for the Yjs notepad (`/parties/docs/:room`).
 
 Default lobby token: `dev-token` (see `apps/parties/sinkd.json`). JWT lobby auth is supported via `auth.jwtSecret`.
 
@@ -39,8 +39,9 @@ Default lobby token: `dev-token` (see `apps/parties/sinkd.json`). JWT lobby auth
 | `@sinkd/config` | `sinkd.json` → wrangler bindings |
 | `@sinkd/cli` | `sinkd init` / `dev` / `deploy` / `doctor` |
 | `@sinkd/client` | thin `partysocket` helpers |
-| `@sinkd/studio` | brand + live room UI |
-| `@sinkd/parties` | example Chat party |
+| `@sinkd/y` | `YjsServer` (y-websocket sync + awareness) |
+| `@sinkd/studio` | brand + live chat / Yjs pad UI |
+| `@sinkd/parties` | example Chat, Presence, Docs parties |
 
 ## CLI
 

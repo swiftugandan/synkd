@@ -11,7 +11,8 @@ Last updated: 2026-10-12
 | Connection tags (≤9 / 256) | Native `getTags` | Userland on Connection | Userland (probe native `getTags` on target celld) |
 | Hibernatable WebSockets | Yes | Process-local idle rooms | Yes when DO hibernation APIs present |
 | Per-room SQLite / KV | DO storage | `node:sqlite` files | DO storage via `DoStorageAdapter` |
-| `onAlarm` | Yes | In-memory / SQLite alarm fields | Delegates to DO `alarm()` |
+| `onAlarm` | Yes | Polled by `AlarmScheduler` (SQLite/memory `setAlarm`) | Delegates to DO `alarm()` |
+| Yjs / y-websocket | y-partykit | `@sinkd/y` `YjsServer` | Same party via `createDurableParty` |
 | `request.cf` geo | Edge fields | Absent | Absent / empty on celld |
 | Workers AI / Vectorize | Bindings | Non-goal | Non-goal |
 | `partysocket` clients | Yes | Yes | Yes |
@@ -23,7 +24,7 @@ Last updated: 2026-10-12
 - Ownership moves close sockets with code **1012** — clients must reconnect (partysocket does).
 - Container CLI resolution: `scripts/container-runtime.sh` (override with `CONTAINER_CLI`).
 - **Fleet smoke:** `pnpm fleet:smoke` brings up MinIO and runs `celld deploy` on the compose network. MinIO remains unqualified for production durability; use R2/S3/GCS/Azure for real fleets.
-- **Observability:** Node `/healthz` includes `metrics` counters (connects, messages, lobby rejects, room activations, rate limits).
+- **Observability:** Node `/healthz` includes `metrics` counters (connects, messages, lobby rejects, room activations, rate limits, alarms). Structured logs via `SINKD_LOG_LEVEL` / `SINKD_LOG_JSON=1`.
 
 ## Tag probe
 

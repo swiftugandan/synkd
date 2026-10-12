@@ -12,6 +12,11 @@
       "entry": "./src/presence.ts",
       "export": "Presence",
       "className": "PresenceDO"
+    },
+    "docs": {
+      "entry": "./src/docs.ts",
+      "export": "Docs",
+      "className": "DocsDO"
     }
   },
   "auth": {

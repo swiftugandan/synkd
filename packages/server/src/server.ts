@@ -7,10 +7,12 @@ import type {
   WSMessage,
 } from "./types.js";
 
+/** Party constructors may narrow `env`; adapters pass a loose object. */
 export type PartyClass = new (
   name: string,
   storage: RoomStorage,
-  env?: unknown,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  env?: any,
 ) => Server;
 
 export abstract class Server<Env = unknown, Props = Record<string, unknown>> {
