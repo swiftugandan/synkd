@@ -236,16 +236,22 @@ async function runDev(configPath: string, portOverride?: number): Promise<void> 
   });
 
   const url = await runtime.listen();
+  const partyNames = Object.keys(config.parties);
+  const primary = partyNames[0] ?? "main";
   console.log(`sinkd listening on ${url}`);
-  console.log(`  health: ${url}/healthz`);
-  console.log(`  party:  ${url}/parties/main/<room>`);
+  console.log(`  health:  ${url}/healthz`);
+  console.log(`  metrics: ${url}/metrics`);
+  console.log(`  party:   ${url}/parties/${primary}/<room>`);
+  if (partyNames.length > 1) {
+    console.log(`  parties: ${partyNames.join(", ")}`);
+  }
   if (config.auth?.token) {
     console.log(
-      `  auth:   ?token=${config.auth.token} (or Authorization: Bearer …)`,
+      `  auth:    ?token=${config.auth.token} (or Authorization: Bearer …)`,
     );
   }
   if (config.auth?.jwtSecret) {
-    console.log(`  auth:   JWT (HS256) via ?token= or Bearer`);
+    console.log(`  auth:    JWT (HS256) via ?token= or Bearer`);
   }
 
   const shutdown = async () => {
@@ -305,6 +311,19 @@ function doctor(configPath: string): void {
           : config.auth?.token
             ? "shared-token"
             : "none (open lobby)",
+      });
+      const hasDocs = Boolean(config.parties.docs);
+      checks.push({
+        ok: true,
+        label: "yjs docs party",
+        detail: hasDocs
+          ? "docs — WebsocketProvider → /parties/docs/:room"
+          : "optional (add parties.docs + @sinkd/y)",
+      });
+      checks.push({
+        ok: true,
+        label: "observability",
+        detail: "/healthz JSON · /metrics Prometheus",
       });
     } catch (error) {
       checks.push({

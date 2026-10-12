@@ -101,6 +101,74 @@ describe("createSinkdRuntime", () => {
       openSocket(`ws://127.0.0.1:${port}/parties/main/demo`),
     ).rejects.toThrow();
   });
+
+  it("exposes Prometheus /metrics text", async () => {
+    runtime = createSinkdRuntime({
+      parties: { main: Echo },
+      host: "127.0.0.1",
+      port: 0,
+      storageDir: null,
+      logLevel: "error",
+      alarmIntervalMs: 0,
+    });
+    const base = await runtime.listen();
+    const port = Number(new URL(base).port);
+    await fetch(`http://127.0.0.1:${port}/parties/main/metrics-room`);
+    const res = await fetch(`http://127.0.0.1:${port}/metrics`);
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toContain("text/plain");
+    const body = await res.text();
+    expect(body).toContain("sinkd_rooms 1");
+    expect(body).toContain("sinkd_http_requests_total");
+  });
+
+  it("fires Server.onAlarm via AlarmScheduler", async () => {
+    class AlarmEcho extends Server {
+      fired = 0;
+      override async onStart(): Promise<void> {
+        await this.storage.setAlarm?.(Date.now() - 1);
+      }
+      override async onAlarm(): Promise<void> {
+        this.fired += 1;
+        await this.storage.put("alarms", this.fired);
+      }
+      override async onRequest(): Promise<Response> {
+        return Response.json({
+          fired: (await this.storage.get<number>("alarms")) ?? 0,
+        });
+      }
+    }
+
+    runtime = createSinkdRuntime({
+      parties: { main: AlarmEcho },
+      host: "127.0.0.1",
+      port: 0,
+      storageDir: null,
+      logLevel: "error",
+      alarmIntervalMs: 50,
+    });
+    const base = await runtime.listen();
+    const port = Number(new URL(base).port);
+
+    // Activate room (schedules past-due alarm in onStart)
+    await fetch(`http://127.0.0.1:${port}/parties/main/alarm-room`);
+
+    const deadline = Date.now() + 3000;
+    let fired = 0;
+    while (Date.now() < deadline) {
+      const res = await fetch(
+        `http://127.0.0.1:${port}/parties/main/alarm-room`,
+      );
+      fired = ((await res.json()) as { fired: number }).fired;
+      if (fired >= 1) break;
+      await new Promise((r) => setTimeout(r, 60));
+    }
+    expect(fired).toBeGreaterThanOrEqual(1);
+
+    const metrics = await (await fetch(`http://127.0.0.1:${port}/metrics`)).text();
+    expect(metrics).toContain("sinkd_alarms_total");
+    expect(metrics).toMatch(/sinkd_alarms_total [1-9]/);
+  });
 });
 
 type TestSocket = WebSocket & {
