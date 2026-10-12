@@ -8,7 +8,7 @@ sinkd is a self-hosted PartyKit-compatible realtime room server. It exposes the 
 
 ## Current phase
 
-Phase 6: implementing modules (`contracts`, `server`, `runtime`, `cli`, `studio`) after bootstrap artifacts.
+Phase 6 complete on trunk for Node path + celld adapter. Container spikes use Podman first (`pnpm celld:spike` / `./scripts/compose.sh`).
 
 ## Quick status
 

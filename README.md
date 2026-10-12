@@ -53,12 +53,14 @@ pnpm --filter @sinkd/cli exec tsx src/bin.ts deploy --config ./my-app/sinkd.json
 
 ## celld fleets
 
-Darwin x86_64 has no celld prebuild. Local DX uses `@sinkd/runtime`. Fleets:
+Darwin x86_64 has no celld prebuild. Local DX uses `@sinkd/runtime`. Fleets use **Podman** (preferred) or Docker:
 
 ```sh
-pnpm celld:spike   # requires Docker daemon
-# or compose: deploy/docker-compose.yml with CELLD_BUCKET set
+pnpm celld:spike              # resolves podman → docker
+./scripts/compose.sh up -d    # set CELLD_BUCKET first
 ```
+
+Override the runtime with `CONTAINER_CLI=podman` or `CONTAINER_CLI=docker`.
 
 Compatibility matrix: `docs/compat.md`.
 

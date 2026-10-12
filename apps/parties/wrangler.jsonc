@@ -3,7 +3,19 @@
   "main": "src/worker.ts",
   "compatibility_date": "2026-01-01",
   "durable_objects": {
-    "bindings": [{ "name": "ChatDO", "class_name": "ChatDO" }]
+    "bindings": [
+      {
+        "name": "ChatDO",
+        "class_name": "ChatDO"
+      }
+    ]
   },
-  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["ChatDO"] }]
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": [
+        "ChatDO"
+      ]
+    }
+  ]
 }

@@ -266,13 +266,13 @@ function deploy(configPath: string): void {
   writeFileSync(wranglerPath, toWranglerJsonc(config));
   console.log(`Wrote ${wranglerPath}`);
   console.log(`
-Deploy to celld:
+Deploy to celld (podman preferred, docker fallback):
 
   ./scripts/celld-spike.sh
-  # or on Linux/ARM64 with celld installed:
-  #   celld deploy ${root}
+  ./scripts/compose.sh up -d   # set CELLD_BUCKET first
 
-Compose fleet: deploy/docker-compose.yml (set CELLD_BUCKET).
+On Linux/ARM64 with a native binary:
+  celld deploy ${root}
 `);
 }
 

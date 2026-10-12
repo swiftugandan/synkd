@@ -18,9 +18,10 @@ Last updated: 2026-10-12
 
 ## Platform notes
 
-- **Darwin x86_64:** no celld prebuild. Local DX = Node runtime. Fleet = Linux container (`ghcr.io/denoland/celld`).
+- **Darwin x86_64:** no celld prebuild. Local DX = Node runtime. Fleet = Linux container via **Podman** (preferred) or Docker (`ghcr.io/denoland/celld`).
 - **Darwin arm64 / Linux:** `curl -fsSL https://celld.dev/install.sh | sh` then `celld dev` / `celld deploy`.
 - Ownership moves close sockets with code **1012** — clients must reconnect (partysocket does).
+- Container CLI resolution: `scripts/container-runtime.sh` (override with `CONTAINER_CLI`).
 
 ## Tag probe
 

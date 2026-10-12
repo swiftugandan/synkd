@@ -2,7 +2,9 @@ node_modules
 dist
 .turbo
 .sinkd
+!.sinkd/.gitkeep
 .celld
+apps/parties/.celld
 *.log
 .DS_Store
 coverage

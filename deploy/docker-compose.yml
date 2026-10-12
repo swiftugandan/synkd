@@ -1,5 +1,7 @@
 # celld fleet template (Linux containers).
-# Requires Docker daemon + a qualified object store (R2/S3/GCS/Azure).
+# Prefer Podman: ./scripts/compose.sh up -d
+# Docker Desktop also works if its daemon is running.
+# Needs a qualified object store (R2/S3/GCS/Azure).
 # MinIO is fine for local experimentation but is not celld-qualified for production fleets.
 
 services:
