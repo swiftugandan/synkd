@@ -134,12 +134,28 @@ export function Room({
 
   return (
     <>
+      {status === "disconnected" ? (
+        <div className="banner banner-warn" role="alert">
+          Connection lost. Messages will not deliver until you reconnect.
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => setReconnectNonce((n) => n + 1)}
+          >
+            Reconnect
+          </button>
+        </div>
+      ) : null}
+
       <div className="room-toolbar">
         <div className="room-id">
           room <strong>{room}</strong>
           <span className="room-stat"> · {backend}</span>
           {messageCount > 0 ? (
             <span className="room-stat"> · {messageCount} persisted</span>
+          ) : null}
+          {roster.length > 0 ? (
+            <span className="room-stat"> · {roster.length} online</span>
           ) : null}
         </div>
         <div
@@ -158,15 +174,6 @@ export function Room({
             </span>
           ))}
         </div>
-        {status === "disconnected" ? (
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={() => setReconnectNonce((n) => n + 1)}
-          >
-            Reconnect
-          </button>
-        ) : null}
         <button type="button" className="btn btn-ghost" onClick={onLeave}>
           Leave
         </button>

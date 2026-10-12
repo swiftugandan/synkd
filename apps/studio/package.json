@@ -15,7 +15,9 @@
     "@sinkd/client": "workspace:*",
     "partysocket": "^1.3.0",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "y-websocket": "^3.0.0",
+    "yjs": "^13.6.27"
   },
   "devDependencies": {
     "@playwright/test": "^1.56.0",

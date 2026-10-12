@@ -1,10 +1,12 @@
 import { useMemo, useState } from "react";
 import { HealthStrip } from "./HealthStrip";
+import { Pad } from "./Pad";
 import { Room } from "./Room";
 
 const DEFAULT_TOKEN = "dev-token";
 
 type Backend = "node" | "celld";
+type Surface = "chat" | "pad";
 
 function randomRoom(): string {
   const adjectives = ["brine", "coral", "drift", "kelp", "tidal", "abyss"];
@@ -14,14 +16,21 @@ function randomRoom(): string {
   return `${a}-${n}-${Math.floor(Math.random() * 90 + 10)}`;
 }
 
-function readQuery(): { room?: string; backend?: Backend; name?: string } {
+function readQuery(): {
+  room?: string;
+  backend?: Backend;
+  name?: string;
+  surface?: Surface;
+} {
   if (typeof window === "undefined") return {};
   const q = new URLSearchParams(window.location.search);
   const backend = q.get("backend");
+  const surface = q.get("surface");
   return {
     room: q.get("room") ?? undefined,
     name: q.get("name") ?? undefined,
     backend: backend === "celld" || backend === "node" ? backend : undefined,
+    surface: surface === "pad" || surface === "chat" ? surface : undefined,
   };
 }
 
@@ -41,6 +50,7 @@ export function App() {
   const [joined, setJoined] = useState(() => Boolean(initial.room));
   const [name, setName] = useState(initial.name ?? "");
   const [backend, setBackend] = useState<Backend>(initial.backend ?? "node");
+  const [surface, setSurface] = useState<Surface>(initial.surface ?? "chat");
   const [copied, setCopied] = useState(false);
   const host = useMemo(() => studioHost(backend), [backend]);
 
@@ -49,12 +59,14 @@ export function App() {
     backend: Backend;
     name: string;
     joined: boolean;
+    surface: Surface;
   }) {
     if (typeof window === "undefined") return;
     const url = new URL(window.location.href);
     if (next.joined) url.searchParams.set("room", next.room);
     else url.searchParams.delete("room");
     url.searchParams.set("backend", next.backend);
+    url.searchParams.set("surface", next.surface);
     if (next.name) url.searchParams.set("name", next.name);
     else url.searchParams.delete("name");
     window.history.replaceState({}, "", url);
@@ -64,11 +76,14 @@ export function App() {
     const url = new URL(window.location.href);
     url.searchParams.set("room", room);
     url.searchParams.set("backend", backend);
+    url.searchParams.set("surface", surface);
     if (name) url.searchParams.set("name", name);
     await navigator.clipboard.writeText(url.toString());
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1600);
   }
+
+  const partyPath = surface === "pad" ? "docs" : "main";
 
   return (
     <div className="shell">
@@ -128,7 +143,7 @@ export function App() {
                 className="btn btn-primary"
                 onClick={() => {
                   setJoined(true);
-                  syncUrl({ room, backend, name, joined: true });
+                  syncUrl({ room, backend, name, joined: true, surface });
                 }}
               >
                 Open a room
@@ -147,6 +162,7 @@ export function App() {
                       backend,
                       name,
                       joined: false,
+                      surface,
                     });
                   }}
                 >
@@ -167,7 +183,7 @@ export function App() {
           </div>
           <p className="hero-protocol">
             <code>
-              /parties/main/{room}
+              /parties/{partyPath}/{room}
             </code>
             <span className="hero-backend"> via {backend}</span>
           </p>
@@ -181,13 +197,40 @@ export function App() {
               onSubmit={(e) => {
                 e.preventDefault();
                 setJoined(true);
-                syncUrl({ room, backend, name, joined: true });
+                syncUrl({ room, backend, name, joined: true, surface });
               }}
             >
               <p className="join-lede">
                 Enter a room id. Open the same invite link in another tab to see
                 broadcast fan-out.
               </p>
+              <fieldset className="backend-field">
+                <legend>Surface</legend>
+                <label className="backend-option">
+                  <input
+                    type="radio"
+                    name="surface"
+                    checked={surface === "chat"}
+                    onChange={() => {
+                      setSurface("chat");
+                      syncUrl({ room, backend, name, joined, surface: "chat" });
+                    }}
+                  />
+                  Chat
+                </label>
+                <label className="backend-option">
+                  <input
+                    type="radio"
+                    name="surface"
+                    checked={surface === "pad"}
+                    onChange={() => {
+                      setSurface("pad");
+                      syncUrl({ room, backend, name, joined, surface: "pad" });
+                    }}
+                  />
+                  Pad <span className="muted">Yjs</span>
+                </label>
+              </fieldset>
               <fieldset className="backend-field">
                 <legend>Runtime</legend>
                 <label className="backend-option">
@@ -197,7 +240,7 @@ export function App() {
                     checked={backend === "node"}
                     onChange={() => {
                       setBackend("node");
-                      syncUrl({ room, backend: "node", name, joined });
+                      syncUrl({ room, backend: "node", name, joined, surface });
                     }}
                   />
                   Node <span className="muted">:8787</span>
@@ -209,7 +252,13 @@ export function App() {
                     checked={backend === "celld"}
                     onChange={() => {
                       setBackend("celld");
-                      syncUrl({ room, backend: "celld", name, joined });
+                      syncUrl({
+                        room,
+                        backend: "celld",
+                        name,
+                        joined,
+                        surface,
+                      });
                     }}
                   />
                   celld <span className="muted">:9876</span>
@@ -241,9 +290,9 @@ export function App() {
                 Enter room
               </button>
             </form>
-          ) : (
-            <Room
-              key={`${backend}:${room}`}
+          ) : surface === "pad" ? (
+            <Pad
+              key={`pad:${backend}:${room}`}
               host={host}
               room={room}
               token={DEFAULT_TOKEN}
@@ -251,7 +300,20 @@ export function App() {
               backend={backend}
               onLeave={() => {
                 setJoined(false);
-                syncUrl({ room, backend, name, joined: false });
+                syncUrl({ room, backend, name, joined: false, surface });
+              }}
+            />
+          ) : (
+            <Room
+              key={`chat:${backend}:${room}`}
+              host={host}
+              room={room}
+              token={DEFAULT_TOKEN}
+              displayName={name || undefined}
+              backend={backend}
+              onLeave={() => {
+                setJoined(false);
+                syncUrl({ room, backend, name, joined: false, surface });
               }}
             />
           )}
