@@ -1,0 +1,17 @@
+{
+  "name": "@sinkd/parties",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "dev": "sinkd dev --root ."
+  },
+  "dependencies": {
+    "@sinkd/cli": "workspace:*",
+    "@sinkd/server": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

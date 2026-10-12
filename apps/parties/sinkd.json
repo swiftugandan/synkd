@@ -1,0 +1,16 @@
+{
+  "name": "sinkd-chat",
+  "port": 8787,
+  "host": "127.0.0.1",
+  "parties": {
+    "main": {
+      "entry": "./src/chat.ts",
+      "export": "Chat"
+    }
+  },
+  "auth": {
+    "token": "dev-token"
+  },
+  "cors": true,
+  "storageDir": ".sinkd/rooms"
+}

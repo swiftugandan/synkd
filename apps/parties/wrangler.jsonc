@@ -1,0 +1,9 @@
+{
+  "name": "sinkd-chat",
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-01-01",
+  "durable_objects": {
+    "bindings": [{ "name": "Main", "class_name": "Chat" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Chat"] }]
+}
