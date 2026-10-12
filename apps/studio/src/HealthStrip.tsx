@@ -17,8 +17,12 @@ interface HealthStripProps {
 
 function healthUrl(backend: "node" | "celld"): string {
   if (backend === "celld") return "http://127.0.0.1:9876/";
-  // Same-origin proxy in Vite for Node
-  if (typeof window !== "undefined" && window.location.port.startsWith("517")) {
+  // Same-origin proxy in Vite / Playwright Studio for Node
+  if (
+    typeof window !== "undefined" &&
+    (window.location.port.startsWith("517") ||
+      window.location.port.startsWith("417"))
+  ) {
     return "/healthz";
   }
   return "http://127.0.0.1:8787/healthz";

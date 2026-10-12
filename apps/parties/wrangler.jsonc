@@ -11,6 +11,10 @@
       {
         "name": "PresenceDO",
         "class_name": "PresenceDO"
+      },
+      {
+        "name": "DocsDO",
+        "class_name": "DocsDO"
       }
     ]
   },
@@ -20,6 +24,12 @@
       "new_sqlite_classes": [
         "ChatDO",
         "PresenceDO"
+      ]
+    },
+    {
+      "tag": "v2",
+      "new_sqlite_classes": [
+        "DocsDO"
       ]
     }
   ]

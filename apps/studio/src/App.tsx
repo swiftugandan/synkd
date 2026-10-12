@@ -40,7 +40,8 @@ function studioHost(backend: Backend): string {
   }
   if (backend === "celld") return "127.0.0.1:9876";
   const { host, port } = window.location;
-  if (port.startsWith("517")) return host;
+  // Vite (517x) and Playwright preview (417x) proxy /parties → runtime
+  if (port.startsWith("517") || port.startsWith("417")) return host;
   return "127.0.0.1:8787";
 }
 

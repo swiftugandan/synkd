@@ -18,4 +18,22 @@ describe("toWranglerJsonc", () => {
       "Presence",
     ]);
   });
+
+  it("includes DocsDO when docs party is configured", () => {
+    const json = toWranglerJsonc({
+      name: "sinkd-chat",
+      parties: {
+        main: { entry: "./chat.ts", className: "ChatDO" },
+        docs: { entry: "./docs.ts", className: "DocsDO" },
+      },
+    });
+    const parsed = JSON.parse(json) as {
+      durable_objects: { bindings: Array<{ name: string }> };
+      migrations: Array<{ new_sqlite_classes: string[] }>;
+    };
+    expect(parsed.durable_objects.bindings.map((b) => b.name)).toContain(
+      "DocsDO",
+    );
+    expect(parsed.migrations[0]?.new_sqlite_classes).toContain("DocsDO");
+  });
 });

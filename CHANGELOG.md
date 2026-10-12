@@ -14,3 +14,4 @@
 - Studio disconnect banner, online peer count, and heartbeat clock in chat rooms
 - Health metrics: `alarms`
 - `docs/yjs.md`
+- Wrangler migration `v2` for `DocsDO`; Studio Playwright pad e2e
