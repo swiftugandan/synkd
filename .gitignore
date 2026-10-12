@@ -13,6 +13,9 @@ coverage
 apps/studio/dist
 apps/studio/test-results
 apps/studio/playwright-report
+apps/console/dist
+apps/console/test-results
+apps/console/playwright-report
 .env
 .env.*
 !.env.example
