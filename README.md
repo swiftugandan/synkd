@@ -62,6 +62,14 @@ pnpm celld:spike              # resolves podman → docker
 
 Override the runtime with `CONTAINER_CLI=podman` or `CONTAINER_CLI=docker`.
 
+Local MinIO overlay (experimental — not celld-qualified for production):
+
+```sh
+pnpm fleet:minio
+```
+
+Studio can target Node (`?backend=node`) or celld (`?backend=celld` on `:9876`).
+
 Compatibility matrix: `docs/compat.md`.
 
 ## Docs
