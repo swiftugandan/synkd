@@ -1,0 +1,5 @@
+:80 {
+  reverse_proxy celld-a:8080 celld-b:8080 {
+    lb_policy cookie
+  }
+}

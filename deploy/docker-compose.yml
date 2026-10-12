@@ -1,0 +1,60 @@
+# celld fleet template (Linux containers).
+# Requires Docker daemon + a qualified object store (R2/S3/GCS/Azure).
+# MinIO is fine for local experimentation but is not celld-qualified for production fleets.
+
+services:
+  celld-a:
+    image: ghcr.io/denoland/celld:latest
+    command:
+      - --listen
+      - 0.0.0.0:8080
+      - --internal-listen
+      - 0.0.0.0:8081
+      - --advertise
+      - celld-a:8081
+    environment:
+      CELLD_BUCKET: ${CELLD_BUCKET:-s3://sinkd-cells}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      AWS_REGION: ${AWS_REGION:-auto}
+      S3_ENDPOINT: ${S3_ENDPOINT:-}
+      CELLD_DURABILITY: fleet
+    ports:
+      - "8080:8080"
+    networks:
+      - sinkd
+
+  celld-b:
+    image: ghcr.io/denoland/celld:latest
+    command:
+      - --listen
+      - 0.0.0.0:8080
+      - --internal-listen
+      - 0.0.0.0:8081
+      - --advertise
+      - celld-b:8081
+    environment:
+      CELLD_BUCKET: ${CELLD_BUCKET:-s3://sinkd-cells}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      AWS_REGION: ${AWS_REGION:-auto}
+      S3_ENDPOINT: ${S3_ENDPOINT:-}
+      CELLD_DURABILITY: fleet
+    networks:
+      - sinkd
+
+  caddy:
+    image: caddy:2
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+    ports:
+      - "443:443"
+      - "80:80"
+    networks:
+      - sinkd
+    depends_on:
+      - celld-a
+      - celld-b
+
+networks:
+  sinkd:
