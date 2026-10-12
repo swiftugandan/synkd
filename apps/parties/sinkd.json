@@ -5,7 +5,8 @@
   "parties": {
     "main": {
       "entry": "./src/chat.ts",
-      "export": "Chat"
+      "export": "Chat",
+      "className": "ChatDO"
     }
   },
   "auth": {

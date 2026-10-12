@@ -8,6 +8,8 @@
     "dev": "sinkd dev --root ."
   },
   "dependencies": {
+    "@sinkd/adapter-celld": "workspace:*",
+    "@sinkd/auth": "workspace:*",
     "@sinkd/cli": "workspace:*",
     "@sinkd/server": "workspace:*"
   },
