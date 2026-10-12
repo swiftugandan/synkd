@@ -1,0 +1,26 @@
+{
+  "name": "sinkd",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Self-hosted PartyKit-compatible realtime rooms on Node and celld",
+  "type": "module",
+  "packageManager": "pnpm@10.28.2",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "pnpm -r --filter=./packages/* run build",
+    "dev": "pnpm --filter @sinkd/cli exec tsx src/bin.ts dev --root ../../apps/parties",
+    "dev:studio": "pnpm --filter @sinkd/studio dev",
+    "dev:all": "pnpm run build && concurrently -k -n runtime,studio -c cyan,magenta \"pnpm dev\" \"pnpm dev:studio\"",
+    "test": "pnpm -r --filter=./packages/* run test",
+    "typecheck": "pnpm -r run typecheck",
+    "lint": "pnpm -r run typecheck",
+    "studio:build": "pnpm --filter @sinkd/studio build"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}

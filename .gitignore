@@ -1,0 +1,13 @@
+node_modules
+dist
+.turbo
+.sinkd
+.celld
+*.log
+.DS_Store
+coverage
+apps/studio/dist
+.env
+.env.*
+!.env.example
+*.tsbuildinfo
