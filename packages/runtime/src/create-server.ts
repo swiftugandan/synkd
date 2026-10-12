@@ -66,6 +66,15 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
   const startedAt = Date.now();
   const rooms = new Map<string, RoomHandle>();
   const corsHeaders = resolveCorsHeaders(options.cors ?? true);
+  const metrics = {
+    connects: 0,
+    disconnects: 0,
+    messages: 0,
+    lobbyRejects: 0,
+    roomActivations: 0,
+    rateLimited: 0,
+    httpRequests: 0,
+  };
 
   const httpServer = createHttpServer();
   const wss = new WebSocketServer({ noServer: true });
@@ -91,6 +100,7 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
     if (existing) return existing;
 
     if (!opts?.skipRateLimit && !activationLimiter.allow(clientKey)) {
+      metrics.rateLimited += 1;
       throw new SinkdError(
         SinkdErrorCode.ROOM_OVERLOADED,
         "Room activation rate limit exceeded",
@@ -117,6 +127,7 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
     const server = new Party(room, storage, partyEnv);
     const handle = { server, storage };
     rooms.set(key, handle);
+    if (!opts?.skipRateLimit) metrics.roomActivations += 1;
     return handle;
   }
 
@@ -223,6 +234,7 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
           route.room,
         );
         if (lobbyResult instanceof Response) {
+          metrics.lobbyRejects += 1;
           socket.write(
             `HTTP/1.1 ${lobbyResult.status} ${lobbyResult.statusText || "Error"}\r\nConnection: close\r\n\r\n`,
           );
@@ -283,6 +295,7 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
             startedAt,
             rooms: rooms.size,
             connections: countConnections(),
+            metrics: { ...metrics },
           });
           const response = applyCors(
             Response.json(body),
@@ -291,6 +304,8 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
           await writeWebResponse(res, response);
           return;
         }
+
+        metrics.httpRequests += 1;
 
         const route = parsePartyRoute(url.pathname, prefix);
         if (!route) {
@@ -317,6 +332,7 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
           route.room,
         );
         if (lobbyResult instanceof Response) {
+          metrics.lobbyRejects += 1;
           await writeWebResponse(res, applyCors(lobbyResult, corsHeaders));
           return;
         }
@@ -372,8 +388,10 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
         ws.close(code, reason);
       },
     });
+    metrics.connects += 1;
 
     ws.on("message", (data, isBinary) => {
+      metrics.messages += 1;
       const message = isBinary
         ? toArrayBuffer(data)
         : data.toString();
@@ -381,6 +399,7 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
     });
 
     ws.on("close", (code, reason) => {
+      metrics.disconnects += 1;
       void server.detachConnection(
         connection.id,
         code,

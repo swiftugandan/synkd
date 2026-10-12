@@ -1,3 +1,13 @@
+export interface HealthMetrics {
+  readonly connects: number;
+  readonly disconnects: number;
+  readonly messages: number;
+  readonly lobbyRejects: number;
+  readonly roomActivations: number;
+  readonly rateLimited: number;
+  readonly httpRequests: number;
+}
+
 export interface HealthReport {
   readonly ok: true;
   readonly service: "sinkd";
@@ -5,6 +15,7 @@ export interface HealthReport {
   readonly uptimeMs: number;
   readonly rooms: number;
   readonly connections: number;
+  readonly metrics: HealthMetrics;
 }
 
 export function createHealthReport(input: {
@@ -12,6 +23,7 @@ export function createHealthReport(input: {
   startedAt: number;
   rooms: number;
   connections: number;
+  metrics?: Partial<HealthMetrics>;
 }): HealthReport {
   return {
     ok: true,
@@ -20,5 +32,14 @@ export function createHealthReport(input: {
     uptimeMs: Date.now() - input.startedAt,
     rooms: input.rooms,
     connections: input.connections,
+    metrics: {
+      connects: input.metrics?.connects ?? 0,
+      disconnects: input.metrics?.disconnects ?? 0,
+      messages: input.metrics?.messages ?? 0,
+      lobbyRejects: input.metrics?.lobbyRejects ?? 0,
+      roomActivations: input.metrics?.roomActivations ?? 0,
+      rateLimited: input.metrics?.rateLimited ?? 0,
+      httpRequests: input.metrics?.httpRequests ?? 0,
+    },
   };
 }

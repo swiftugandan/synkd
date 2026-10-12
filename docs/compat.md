@@ -22,6 +22,8 @@ Last updated: 2026-10-12
 - **Darwin arm64 / Linux:** `curl -fsSL https://celld.dev/install.sh | sh` then `celld dev` / `celld deploy`.
 - Ownership moves close sockets with code **1012** — clients must reconnect (partysocket does).
 - Container CLI resolution: `scripts/container-runtime.sh` (override with `CONTAINER_CLI`).
+- **Fleet smoke:** `pnpm fleet:smoke` brings up MinIO and runs `celld deploy` on the compose network. MinIO remains unqualified for production durability; use R2/S3/GCS/Azure for real fleets.
+- **Observability:** Node `/healthz` includes `metrics` counters (connects, messages, lobby rejects, room activations, rate limits).
 
 ## Tag probe
 
