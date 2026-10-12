@@ -1,0 +1,3 @@
+# Vision
+
+sinkd lets teams run PartyKit-style realtime rooms on infrastructure they own: one durable room actor per `(party, room)` identity, dual HTTP + WebSocket access, broadcast and tagged connections, and a client that works by pointing `partysocket` at a self-hosted host. Done means an engineer can `sinkd init`, `sinkd dev`, open two browsers on the same room, exchange messages, persist state across process wake, and optionally deploy the same party classes onto a celld fleet without rewriting application code.
