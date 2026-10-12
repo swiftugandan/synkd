@@ -17,12 +17,18 @@ export interface SinkdConfig {
   host?: string;
   parties: Record<string, SinkdPartyConfig>;
   auth?: {
-    /** If set, require `?token=` to match this value (dev convenience) */
+    /** Shared query/header token (dev convenience) */
     token?: string;
+    /** HS256 secret for JWT lobby auth */
+    jwtSecret?: string;
+    /** Allowed browser Origins; omit to allow all */
+    origins?: string[];
   };
   cors?: boolean | Record<string, string>;
   storageDir?: string | null;
   compatibilityDate?: string;
+  /** Max concurrent sockets per room (default 500) */
+  maxConnectionsPerRoom?: number;
 }
 
 export function loadSinkdConfig(path: string): SinkdConfig {

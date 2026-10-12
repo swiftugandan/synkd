@@ -20,6 +20,7 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
+    "@sinkd/auth": "workspace:*",
     "@sinkd/config": "workspace:*",
     "@sinkd/runtime": "workspace:*",
     "@sinkd/server": "workspace:*",

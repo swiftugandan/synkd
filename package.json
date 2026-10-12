@@ -8,15 +8,20 @@
   "engines": {
     "node": ">=22"
   },
+  "bin": {
+    "sinkd": "./packages/cli/dist/bin.js"
+  },
   "scripts": {
     "build": "pnpm -r --filter=./packages/* run build",
     "dev": "pnpm --filter @sinkd/cli exec tsx src/bin.ts dev --root ../../apps/parties",
     "dev:studio": "pnpm --filter @sinkd/studio dev",
     "dev:all": "pnpm run build && concurrently -k -n runtime,studio -c cyan,magenta \"pnpm dev\" \"pnpm dev:studio\"",
+    "doctor": "pnpm --filter @sinkd/cli exec tsx src/bin.ts doctor --root ../../apps/parties",
     "test": "pnpm -r --filter=./packages/* run test",
     "typecheck": "pnpm -r run typecheck",
     "lint": "pnpm -r run typecheck",
-    "studio:build": "pnpm --filter @sinkd/studio build"
+    "studio:build": "pnpm --filter @sinkd/studio build",
+    "celld:spike": "bash ./scripts/celld-spike.sh"
   },
   "devDependencies": {
     "concurrently": "^9.2.1",

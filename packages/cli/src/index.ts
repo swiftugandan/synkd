@@ -1,7 +1,9 @@
+import { execSync } from "node:child_process";
 import { mkdirSync, writeFileSync, existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { Command } from "commander";
+import { createLobbyAuth } from "@sinkd/auth";
 import {
   bindingMap,
   loadSinkdConfig,
@@ -32,10 +34,10 @@ export async function runCli(argv: string[]): Promise<void> {
     .option("--root <dir>", "project root (contains sinkd.json)")
     .option("-p, --port <port>", "port", (v) => Number(v))
     .action(async (opts: { config: string; root?: string; port?: number }) => {
-      const root = resolve(opts.root ?? dirname(resolve(opts.config)));
-      const configPath = resolve(root, opts.config === "sinkd.json" && opts.root
-        ? "sinkd.json"
-        : opts.config);
+      const root = resolve(opts.root ?? process.cwd());
+      const configPath = opts.root
+        ? resolve(root, "sinkd.json")
+        : resolve(opts.config);
       await runDev(configPath, opts.port);
     });
 
@@ -44,6 +46,17 @@ export async function runCli(argv: string[]): Promise<void> {
     .option("-c, --config <path>", "path to sinkd.json", "sinkd.json")
     .action((opts: { config: string }) => {
       deploy(resolve(opts.config));
+    });
+
+  program
+    .command("doctor")
+    .option("-c, --config <path>", "path to sinkd.json", "sinkd.json")
+    .option("--root <dir>", "project root")
+    .action((opts: { config: string; root?: string }) => {
+      const configPath = opts.root
+        ? resolve(opts.root, "sinkd.json")
+        : resolve(opts.config);
+      doctor(configPath);
     });
 
   await program.parseAsync(argv);
@@ -56,7 +69,7 @@ function initProject(dir: string, name: string): void {
     name,
     port: 8787,
     parties: {
-      main: { entry: "./src/chat.ts", export: "Chat" },
+      main: { entry: "./src/chat.ts", export: "Chat", className: "ChatDO" },
     },
     auth: { token: "dev-token" },
     cors: true,
@@ -65,6 +78,23 @@ function initProject(dir: string, name: string): void {
   writeFileSync(join(dir, "sinkd.json"), `${JSON.stringify(config, null, 2)}\n`);
   writeFileSync(join(dir, "wrangler.jsonc"), toWranglerJsonc(config));
   writeFileSync(
+    join(dir, "package.json"),
+    `${JSON.stringify(
+      {
+        name,
+        private: true,
+        type: "module",
+        scripts: {
+          dev: "sinkd dev",
+          deploy: "sinkd deploy",
+          doctor: "sinkd doctor",
+        },
+      },
+      null,
+      2,
+    )}\n`,
+  );
+  writeFileSync(
     join(dir, "src/chat.ts"),
     `import { Server, type Connection } from "@sinkd/server";
 
@@ -72,18 +102,13 @@ export class Chat extends Server {
   static options = { hibernate: true };
 
   onConnect(conn: Connection) {
-    const roster = [...this.getConnections()].map((c) => c.id);
     this.broadcast(
-      JSON.stringify({ type: "system", text: \`\${conn.id} joined\`, roster }),
-    );
-  }
-
-  onClose(conn: Connection) {
-    const roster = [...this.getConnections()]
-      .filter((c) => c.id !== conn.id)
-      .map((c) => c.id);
-    this.broadcast(
-      JSON.stringify({ type: "system", text: \`\${conn.id} left\`, roster }),
+      JSON.stringify({
+        type: "system",
+        text: "joined",
+        from: conn.id,
+        at: Date.now(),
+      }),
     );
   }
 
@@ -122,11 +147,25 @@ export default Chat;
   );
   writeFileSync(
     join(dir, "src/worker.ts"),
-    `/**
- * celld / Cloudflare Worker entry.
- * Deploy with: celld deploy .  (Linux/ARM64 or Docker)
- */
-export { default } from "./chat.ts";
+    `import { createDurableParty, routeSinkdRequest } from "@sinkd/adapter-celld";
+import { createLobbyAuth } from "@sinkd/auth";
+import { Chat } from "./chat.ts";
+
+export const ChatDO = createDurableParty(Chat);
+
+const lobby = createLobbyAuth({ token: "dev-token" });
+
+export default {
+  async fetch(request: Request, env: Record<string, unknown>): Promise<Response> {
+    return (
+      (await routeSinkdRequest(request, env as never, {
+        bindings: { main: "ChatDO" },
+        onBeforeConnect: lobby,
+        onBeforeRequest: lobby,
+      })) ?? new Response("Not Found", { status: 404 })
+    );
+  },
+};
 `,
   );
   writeFileSync(
@@ -134,18 +173,16 @@ export { default } from "./chat.ts";
     `# ${name}
 
 \`\`\`sh
+sinkd doctor
 sinkd dev
 \`\`\`
 
-Connect with partysocket:
-
-\`\`\`ts
-new PartySocket({ host: "127.0.0.1:8787", room: "demo", query: { token: "dev-token" } })
-\`\`\`
+Connect with partysocket and \`?token=dev-token\`.
 `,
   );
 
   console.log(`Initialized sinkd project in ${dir}`);
+  console.log(`  sinkd doctor --root ${dir}`);
   console.log(`  sinkd dev --root ${dir}`);
 }
 
@@ -157,7 +194,6 @@ async function runDev(configPath: string, portOverride?: number): Promise<void> 
   const config = loadSinkdConfig(configPath);
   const parties: Record<string, PartyClass> = {};
 
-  // Allow TypeScript party entries under sinkd dev
   const tsx = (await import("tsx/esm/api")) as {
     register: () => () => void;
   };
@@ -177,28 +213,40 @@ async function runDev(configPath: string, portOverride?: number): Promise<void> 
     parties[party] = Party;
   }
 
+  const lobby = createLobbyAuth({
+    token: config.auth?.token,
+    jwtSecret: config.auth?.jwtSecret,
+    origins: config.auth?.origins,
+  });
+
   const runtime = createSinkdRuntime({
     parties,
     bindings: bindingMap(config),
     prefix: config.prefix,
     host: config.host ?? "127.0.0.1",
     port: portOverride ?? config.port ?? 8787,
-    storageDir: config.storageDir === undefined ? join(root, ".sinkd/rooms") : config.storageDir,
+    storageDir:
+      config.storageDir === undefined
+        ? join(root, ".sinkd/rooms")
+        : config.storageDir,
     cors: config.cors ?? true,
-    onBeforeConnect: config.auth?.token
-      ? (req) => {
-          const token = new URL(req.url).searchParams.get("token");
-          if (token !== config.auth?.token) {
-            return new Response("Unauthorized", { status: 401 });
-          }
-        }
-      : undefined,
+    maxConnectionsPerRoom: config.maxConnectionsPerRoom,
+    onBeforeConnect: lobby,
+    onBeforeRequest: lobby,
   });
 
   const url = await runtime.listen();
   console.log(`sinkd listening on ${url}`);
   console.log(`  health: ${url}/healthz`);
-  console.log(`  party:  ${url}/parties/main/<room>?token=…`);
+  console.log(`  party:  ${url}/parties/main/<room>`);
+  if (config.auth?.token) {
+    console.log(
+      `  auth:   ?token=${config.auth.token} (or Authorization: Bearer …)`,
+    );
+  }
+  if (config.auth?.jwtSecret) {
+    console.log(`  auth:   JWT (HS256) via ?token= or Bearer`);
+  }
 
   const shutdown = async () => {
     await runtime.close();
@@ -218,15 +266,80 @@ function deploy(configPath: string): void {
   writeFileSync(wranglerPath, toWranglerJsonc(config));
   console.log(`Wrote ${wranglerPath}`);
   console.log(`
-celld is not available on Darwin x86_64. Deploy options:
+Deploy to celld:
 
-  1. Docker (Linux image):
-       docker run --rm -v "$PWD":/app -w /app ghcr.io/denoland/celld deploy .
+  ./scripts/celld-spike.sh
+  # or on Linux/ARM64 with celld installed:
+  #   celld deploy ${root}
 
-  2. Linux / Apple Silicon host with celld installed:
-       curl -fsSL https://celld.dev/install.sh | sh
-       celld deploy .
-
-See deploy/docker-compose.yml for a multi-node fleet template.
+Compose fleet: deploy/docker-compose.yml (set CELLD_BUCKET).
 `);
+}
+
+function doctor(configPath: string): void {
+  const checks: Array<{ ok: boolean; label: string; detail?: string }> = [];
+  const nodeMajor = Number(process.versions.node.split(".")[0]);
+  checks.push({
+    ok: nodeMajor >= 22,
+    label: "Node.js >= 22",
+    detail: process.versions.node,
+  });
+
+  if (existsSync(configPath)) {
+    try {
+      const config = loadSinkdConfig(configPath);
+      checks.push({ ok: true, label: "sinkd.json", detail: config.name });
+      for (const [party, partyConfig] of Object.entries(config.parties)) {
+        const entry = resolve(dirname(configPath), partyConfig.entry);
+        checks.push({
+          ok: existsSync(entry),
+          label: `party:${party} entry`,
+          detail: partyConfig.entry,
+        });
+      }
+      checks.push({
+        ok: Boolean(config.auth?.token || config.auth?.jwtSecret),
+        label: "auth configured",
+        detail: config.auth?.jwtSecret
+          ? "jwt"
+          : config.auth?.token
+            ? "shared-token"
+            : "none (open lobby)",
+      });
+    } catch (error) {
+      checks.push({
+        ok: false,
+        label: "sinkd.json parse",
+        detail: error instanceof Error ? error.message : String(error),
+      });
+    }
+  } else {
+    checks.push({ ok: false, label: "sinkd.json", detail: "missing" });
+  }
+
+  checks.push({
+    ok: true,
+    label: "local runtime",
+    detail: "@sinkd/runtime (Node)",
+  });
+
+  let celldDetail = "not on PATH (use Docker / Linux / ARM64)";
+  try {
+    const out = execSync("celld --version", { encoding: "utf8" }).trim();
+    celldDetail = out || "found";
+  } catch {
+    // expected on Darwin x86_64
+  }
+  checks.push({ ok: true, label: "celld binary", detail: celldDetail });
+
+  for (const check of checks) {
+    const mark = check.ok ? "ok" : "!!";
+    console.log(
+      `[${mark}] ${check.label}${check.detail ? ` — ${check.detail}` : ""}`,
+    );
+  }
+
+  if (checks.some((c) => !c.ok)) {
+    process.exitCode = 1;
+  }
 }

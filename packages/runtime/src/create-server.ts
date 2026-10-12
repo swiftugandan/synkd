@@ -19,6 +19,7 @@ import {
   type Server,
 } from "@sinkd/server";
 import { applyCors, resolveCorsHeaders } from "./cors.js";
+import { SlidingWindowLimiter } from "./rate-limit.js";
 import { SqliteStorage } from "./sqlite-storage.js";
 
 export interface SinkdRuntimeOptions {
@@ -31,6 +32,8 @@ export interface SinkdRuntimeOptions {
   storageDir?: string | null;
   version?: string;
   maxConnectionsPerRoom?: number;
+  /** Max new room activations per IP per minute (default 60) */
+  maxRoomActivationsPerMinute?: number;
   cors?: boolean | HeadersInit;
   onBeforeConnect?: PartyServerOptions["onBeforeConnect"];
   onBeforeRequest?: PartyServerOptions["onBeforeRequest"];
@@ -56,6 +59,10 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
   const port = options.port ?? 8787;
   const version = options.version ?? "0.1.0";
   const maxConnections = options.maxConnectionsPerRoom ?? 500;
+  const activationLimiter = new SlidingWindowLimiter(
+    options.maxRoomActivationsPerMinute ?? 60,
+    60_000,
+  );
   const startedAt = Date.now();
   const rooms = new Map<string, RoomHandle>();
   const corsHeaders = resolveCorsHeaders(options.cors ?? true);
@@ -71,10 +78,22 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
     return options.parties[party] ?? options.parties[classNameFor(party)];
   }
 
-  function getOrCreateRoom(party: string, room: string): RoomHandle {
+  function getOrCreateRoom(
+    party: string,
+    room: string,
+    clientKey: string,
+  ): RoomHandle {
     const key = partyRoomKey(party, room);
     const existing = rooms.get(key);
     if (existing) return existing;
+
+    if (!activationLimiter.allow(clientKey)) {
+      throw new SinkdError(
+        SinkdErrorCode.ROOM_OVERLOADED,
+        "Room activation rate limit exceeded",
+        429,
+      );
+    }
 
     const Party = getPartyClass(party);
     if (!Party) {
@@ -96,6 +115,23 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
     const handle = { server, storage };
     rooms.set(key, handle);
     return handle;
+  }
+
+  function clientKeyFrom(
+    req: import("node:http").IncomingMessage | Request,
+  ): string {
+    if (req instanceof Request) {
+      return (
+        req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+        req.headers.get("cf-connecting-ip") ||
+        "local"
+      );
+    }
+    const forwarded = req.headers["x-forwarded-for"];
+    if (typeof forwarded === "string" && forwarded.length > 0) {
+      return forwarded.split(",")[0]?.trim() || "local";
+    }
+    return req.socket.remoteAddress ?? "local";
   }
 
   function countConnections(): number {
@@ -157,7 +193,23 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
           return;
         }
 
-        const handle = getOrCreateRoom(route.party, route.room);
+        let handle: RoomHandle;
+        try {
+          handle = getOrCreateRoom(
+            route.party,
+            route.room,
+            clientKeyFrom(req),
+          );
+        } catch (error) {
+          if (error instanceof SinkdError && error.status === 429) {
+            socket.write(
+              "HTTP/1.1 429 Too Many Requests\r\nRetry-After: 60\r\nConnection: close\r\n\r\n",
+            );
+            socket.destroy();
+            return;
+          }
+          throw error;
+        }
         if (handle.server.connections.size >= maxConnections) {
           socket.write(
             "HTTP/1.1 503 Service Unavailable\r\nRetry-After: 1\r\nConnection: close\r\n\r\n",
@@ -232,7 +284,29 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
           return;
         }
 
-        const handle = getOrCreateRoom(route.party, route.room);
+        let handle: RoomHandle;
+        try {
+          handle = getOrCreateRoom(
+            route.party,
+            route.room,
+            clientKeyFrom(req),
+          );
+        } catch (error) {
+          if (error instanceof SinkdError && error.status === 429) {
+            await writeWebResponse(
+              res,
+              applyCors(
+                new Response("Too Many Requests", {
+                  status: 429,
+                  headers: { "Retry-After": "60" },
+                }),
+                corsHeaders,
+              ),
+            );
+            return;
+          }
+          throw error;
+        }
         const response = await handle.server.handleHttp(lobbyResult);
         await writeWebResponse(res, applyCors(response, corsHeaders));
       } catch (error) {
