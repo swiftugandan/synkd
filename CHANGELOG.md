@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 0.1.2 — 2026-10-12
+
+### Fixed
+
+- Studio HealthStrip: probe celld via a party route (`/` is 404), so `?backend=celld` no longer reports offline when the spike is up
+
+## 0.1.1 — 2026-10-12
+
 ### Fixed
 
 - `synkd init` / `synkd dev`: link `@synkd/*` from the CLI install so a new project serves parties without an npm publish

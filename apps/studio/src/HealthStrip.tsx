@@ -16,7 +16,10 @@ interface HealthStripProps {
 }
 
 function healthUrl(backend: "node" | "celld"): string {
-  if (backend === "celld") return "http://127.0.0.1:9876/";
+  // celld has no root healthz — probe a party route (CORS + 200 JSON).
+  if (backend === "celld") {
+    return "http://127.0.0.1:9876/parties/main/studio-health?token=dev-token";
+  }
   // Same-origin proxy in Vite / Playwright Studio for Node
   if (
     typeof window !== "undefined" &&
@@ -40,12 +43,12 @@ export function HealthStrip({ backend }: HealthStripProps) {
           signal: AbortSignal.timeout(2500),
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        // celld root may not be JSON healthz — treat 200 as up
         const contentType = res.headers.get("content-type") ?? "";
         if (contentType.includes("application/json")) {
           const body = (await res.json()) as HealthPayload;
           if (!cancelled) {
-            setHealth(body);
+            // Party probe returns { ok, room, ... }; Node /healthz returns fleet stats.
+            setHealth({ ok: body.ok !== false, ...body });
             setError(null);
           }
         } else if (!cancelled) {
