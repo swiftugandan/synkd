@@ -4,7 +4,15 @@ type ChatInbound =
   | { type: "chat"; text: string; name?: string }
   | { type: "presence"; name: string };
 
-export class Chat extends Server {
+type PartyEnv = {
+  PresenceDO?: {
+    getByName(name: string): {
+      fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response>;
+    };
+  };
+};
+
+export class Chat extends Server<PartyEnv> {
   static options = { hibernate: true };
 
   override getConnectionTags(): string[] {
@@ -15,6 +23,20 @@ export class Chat extends Server {
     const existing = await this.storage.get<number>("messageCount");
     if (existing === undefined) {
       await this.storage.put("messageCount", 0);
+    }
+  }
+
+  async #notifyPresence(payload: Record<string, unknown>): Promise<void> {
+    const stub = this.env.PresenceDO?.getByName(this.name);
+    if (!stub) return;
+    try {
+      await stub.fetch(`http://party/presence/${this.name}`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+    } catch {
+      // presence is best-effort composition
     }
   }
 
@@ -32,6 +54,7 @@ export class Chat extends Server {
         at: Date.now(),
       }),
     );
+    void this.#notifyPresence({ id: conn.id, event: "joined" });
   }
 
   override onClose(conn: Connection): void {

@@ -78,16 +78,19 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
     return options.parties[party] ?? options.parties[classNameFor(party)];
   }
 
+  const partyEnv: Record<string, unknown> = {};
+
   function getOrCreateRoom(
     party: string,
     room: string,
     clientKey: string,
+    opts?: { skipRateLimit?: boolean },
   ): RoomHandle {
     const key = partyRoomKey(party, room);
     const existing = rooms.get(key);
     if (existing) return existing;
 
-    if (!activationLimiter.allow(clientKey)) {
+    if (!opts?.skipRateLimit && !activationLimiter.allow(clientKey)) {
       throw new SinkdError(
         SinkdErrorCode.ROOM_OVERLOADED,
         "Room activation rate limit exceeded",
@@ -111,10 +114,44 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
             join(options.storageDir ?? ".sinkd/rooms", party, `${room}.sqlite`),
           );
 
-    const server = new Party(room, storage);
+    const server = new Party(room, storage, partyEnv);
     const handle = { server, storage };
     rooms.set(key, handle);
     return handle;
+  }
+
+  for (const party of Object.keys(options.parties)) {
+    const binding = classNameFor(party);
+    partyEnv[binding] = {
+      idFromName(name: string) {
+        return { toString: () => name, name };
+      },
+      getByName(name: string) {
+        return {
+          fetch: async (input: RequestInfo | URL, init?: RequestInit) => {
+            const handle = getOrCreateRoom(party, name, "internal", {
+              skipRateLimit: true,
+            });
+            const request =
+              input instanceof Request ? input : new Request(input, init);
+            return handle.server.handleHttp(request);
+          },
+        };
+      },
+      get(id: { toString(): string; name?: string }) {
+        const name = id.name ?? id.toString();
+        return {
+          fetch: async (input: RequestInfo | URL, init?: RequestInit) => {
+            const handle = getOrCreateRoom(party, name, "internal", {
+              skipRateLimit: true,
+            });
+            const request =
+              input instanceof Request ? input : new Request(input, init);
+            return handle.server.handleHttp(request);
+          },
+        };
+      },
+    };
   }
 
   function clientKeyFrom(

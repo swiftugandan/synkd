@@ -49,7 +49,30 @@ export async function routeSinkdRequest(
     if (result instanceof Request) forwarded = result;
   }
 
+  if (request.method === "OPTIONS") {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, HEAD, OPTIONS, PUT, PATCH, DELETE",
+        "Access-Control-Allow-Headers": "*",
+        "Access-Control-Max-Age": "86400",
+      },
+    });
+  }
+
   const id = namespace.idFromName(route.room);
   const stub = namespace.get(id);
-  return stub.fetch(forwarded);
+  const response = await stub.fetch(forwarded);
+  if (isUpgrade) return response;
+
+  const headers = new Headers(response.headers);
+  if (!headers.has("Access-Control-Allow-Origin")) {
+    headers.set("Access-Control-Allow-Origin", "*");
+  }
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
 }

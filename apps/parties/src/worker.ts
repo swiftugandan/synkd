@@ -1,13 +1,15 @@
 /**
  * celld / workerd Worker entry.
- * Local DX: `sinkd dev` loads Chat via @sinkd/runtime.
+ * Local DX: `sinkd dev` loads parties via @sinkd/runtime.
  * Fleet: `celld deploy` runs this Worker with Durable Object bindings.
  */
 import { createDurableParty, routeSinkdRequest } from "@sinkd/adapter-celld";
 import { createLobbyAuth } from "@sinkd/auth";
 import { Chat } from "./chat.js";
+import { Presence } from "./presence.js";
 
 export const ChatDO = createDurableParty(Chat);
+export const PresenceDO = createDurableParty(Presence);
 
 const lobby = createLobbyAuth({ token: "dev-token" });
 
@@ -18,7 +20,7 @@ export default {
   ): Promise<Response> {
     return (
       (await routeSinkdRequest(request, env as never, {
-        bindings: { main: "ChatDO" },
+        bindings: { main: "ChatDO", presence: "PresenceDO" },
         onBeforeConnect: lobby,
         onBeforeRequest: lobby,
       })) ?? new Response("Not Found", { status: 404 })
