@@ -62,12 +62,29 @@ a {
   text-underline-offset: 0.18em;
 }
 
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -3rem;
+  z-index: 20;
+  padding: 0.55rem 0.85rem;
+  background: var(--signal);
+  color: #032019;
+  font-weight: 600;
+  border-radius: 0.35rem;
+  text-decoration: none;
+}
+
+.skip-link:focus {
+  top: 1rem;
+}
+
 .shell {
   position: relative;
   isolation: isolate;
   min-height: 100vh;
   display: grid;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto 1fr auto;
 }
 
 .wave {
@@ -191,6 +208,17 @@ a {
   color: var(--foam-dim);
 }
 
+.hero-protocol {
+  margin: 1.25rem 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--foam-dim);
+}
+
+.hero-protocol code {
+  color: var(--signal);
+}
+
 .cta-row {
   display: flex;
   flex-wrap: wrap;
@@ -212,9 +240,15 @@ a {
 
 .btn:focus-visible,
 .field:focus-visible,
-.composer input:focus-visible {
+.composer input:focus-visible,
+.composer button:focus-visible {
   outline: 2px solid var(--signal);
   outline-offset: 2px;
+}
+
+.composer input:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .btn-primary {
@@ -280,6 +314,17 @@ a {
 .room-id strong {
   color: var(--foam);
   font-weight: 500;
+}
+
+.room-stat {
+  color: var(--foam-dim);
+}
+
+.join-lede {
+  margin: 0;
+  color: var(--foam-dim);
+  font-size: 0.95rem;
+  max-width: 36ch;
 }
 
 .status {
@@ -435,6 +480,12 @@ a {
 .field::placeholder,
 .composer input::placeholder {
   color: rgba(155, 184, 178, 0.7);
+}
+
+.composer input:disabled,
+.composer button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .join-panel {

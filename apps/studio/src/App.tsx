@@ -11,20 +11,34 @@ function randomRoom(): string {
   return `${a}-${n}-${Math.floor(Math.random() * 90 + 10)}`;
 }
 
+function studioHost(): string {
+  if (typeof window === "undefined") return "127.0.0.1:8787";
+  const { host, port } = window.location;
+  // Vite dev (517x) proxies /parties → runtime
+  if (port.startsWith("517")) return host;
+  return "127.0.0.1:8787";
+}
+
 export function App() {
   const [room, setRoom] = useState(() => randomRoom());
   const [joined, setJoined] = useState(false);
   const [name, setName] = useState("");
-  const host = useMemo(() => {
-    if (typeof window === "undefined") return "127.0.0.1:8787";
-    // Prefer same-origin proxy in Vite; fall back to direct runtime.
-    return window.location.host.includes("5173")
-      ? window.location.host
-      : "127.0.0.1:8787";
-  }, []);
+  const [copied, setCopied] = useState(false);
+  const host = useMemo(() => studioHost(), []);
+
+  async function copyInvite() {
+    const url = `${window.location.origin}${window.location.pathname}?room=${encodeURIComponent(room)}`;
+    await navigator.clipboard.writeText(url);
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1600);
+  }
 
   return (
     <div className="shell">
+      <a className="skip-link" href="#room">
+        Skip to room
+      </a>
+
       <div className="wave" aria-hidden="true">
         <svg viewBox="0 0 1440 320" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path
@@ -47,19 +61,17 @@ export function App() {
       </div>
 
       <header className="topbar">
-        <div className="brand">
+        <div className="brand" aria-label="sinkd">
           sink<span>d</span>
           <span className="brand-meta">self-hosted rooms</span>
         </div>
-        <nav className="top-links">
-          <a href="https://docs.partykit.io/" target="_blank" rel="noreferrer">
-            PartyKit model
-          </a>
+        <nav className="top-links" aria-label="References">
+          <a href="../docs/compat.md">Compat</a>
           <a href="https://celld.dev/docs/" target="_blank" rel="noreferrer">
             celld
           </a>
-          <a href="https://github.com/denoland/celld" target="_blank" rel="noreferrer">
-            GitHub
+          <a href="https://docs.partykit.io/" target="_blank" rel="noreferrer">
+            PartyKit
           </a>
         </nav>
       </header>
@@ -83,21 +95,29 @@ export function App() {
                 Open a room
               </button>
             ) : (
-              <button
-                type="button"
-                className="btn btn-ghost"
-                onClick={() => {
-                  setJoined(false);
-                  setRoom(randomRoom());
-                }}
-              >
-                New room
-              </button>
+              <>
+                <button
+                  type="button"
+                  className="btn btn-ghost"
+                  onClick={() => {
+                    setJoined(false);
+                    setRoom(randomRoom());
+                  }}
+                >
+                  New room
+                </button>
+                <button type="button" className="btn btn-ghost" onClick={() => void copyInvite()}>
+                  {copied ? "Link copied" : "Copy invite"}
+                </button>
+              </>
             )}
             <a className="btn btn-ghost" href="#room">
               Live stage
             </a>
           </div>
+          <p className="hero-protocol">
+            <code>/parties/main/{room}</code>
+          </p>
         </section>
 
         <section className="room-stage" id="room" aria-label="Live room">
@@ -109,6 +129,10 @@ export function App() {
                 setJoined(true);
               }}
             >
+              <p className="join-lede">
+                Enter a room id. Open the same id in another tab to see
+                broadcast fan-out.
+              </p>
               <label>
                 Display name
                 <input
@@ -117,6 +141,7 @@ export function App() {
                   onChange={(e) => setName(e.target.value)}
                   placeholder="optional"
                   maxLength={32}
+                  autoComplete="nickname"
                 />
               </label>
               <label>
@@ -126,6 +151,8 @@ export function App() {
                   value={room}
                   onChange={(e) => setRoom(e.target.value)}
                   required
+                  spellCheck={false}
+                  autoCapitalize="off"
                 />
               </label>
               <button type="submit" className="btn btn-primary">
@@ -145,7 +172,7 @@ export function App() {
       </main>
 
       <p className="foot">
-        /parties/main/{room || "…"} · Node runtime locally · celld fleets via Docker
+        Node runtime locally · celld fleets via Docker · host {host}
       </p>
     </div>
   );

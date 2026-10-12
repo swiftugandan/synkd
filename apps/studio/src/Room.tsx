@@ -41,8 +41,11 @@ export function Room({ host, room, token, displayName, onLeave }: RoomProps) {
   const [roster, setRoster] = useState<RosterEntry[]>([]);
   const [draft, setDraft] = useState("");
   const [name, setName] = useState(displayName ?? "");
+  const [messageCount, setMessageCount] = useState(0);
+  const [reconnectNonce, setReconnectNonce] = useState(0);
   const listRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef<ReturnType<typeof createSinkdSocket> | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const socket = createSinkdSocket({
@@ -59,6 +62,7 @@ export function Room({ host, room, token, displayName, onLeave }: RoomProps) {
       if (displayName) {
         socket.send(JSON.stringify({ type: "presence", name: displayName }));
       }
+      window.requestAnimationFrame(() => inputRef.current?.focus());
     };
     const onClose = () => setStatus("disconnected");
     const onMessage = (event: MessageEvent) => {
@@ -70,6 +74,9 @@ export function Room({ host, room, token, displayName, onLeave }: RoomProps) {
         }
         if (data.type === "system" && data.roster) {
           setRoster(data.roster);
+        }
+        if (data.type === "chat" && typeof data.n === "number") {
+          setMessageCount(data.n);
         }
         setMessages((prev) => [...prev.slice(-200), data]);
       } catch {
@@ -88,7 +95,7 @@ export function Room({ host, room, token, displayName, onLeave }: RoomProps) {
       socket.close();
       socketRef.current = null;
     };
-  }, [host, room, token, displayName]);
+  }, [host, room, token, displayName, reconnectNonce]);
 
   useEffect(() => {
     const el = listRef.current;
@@ -122,28 +129,41 @@ export function Room({ host, room, token, displayName, onLeave }: RoomProps) {
       <div className="room-toolbar">
         <div className="room-id">
           room <strong>{room}</strong>
+          {messageCount > 0 ? (
+            <span className="room-stat"> · {messageCount} persisted</span>
+          ) : null}
         </div>
-        <div className="status" data-state={status}>
+        <div className="status" data-state={status} role="status">
           <span className="status-dot" aria-hidden="true" />
           {status}
         </div>
         <div className="roster" aria-label="Connected peers">
           {roster.map((peer) => (
-            <span className="pill" key={peer.id}>
+            <span className="pill" key={peer.id} title={peer.id}>
               {peer.name || peer.id.slice(0, 6)}
             </span>
           ))}
         </div>
+        {status === "disconnected" ? (
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => setReconnectNonce((n) => n + 1)}
+          >
+            Reconnect
+          </button>
+        ) : null}
         <button type="button" className="btn btn-ghost" onClick={onLeave}>
           Leave
         </button>
       </div>
 
-      <div className="messages" ref={listRef}>
+      <div className="messages" ref={listRef} aria-live="polite">
         {messages.length === 0 ? (
           <div className="empty">
             <strong>Room is live</strong>
-            Open this URL in another tab to see broadcast fan-out.
+            Open this room id in another tab to watch messages fan out from
+            one sticky actor.
           </div>
         ) : (
           messages.map((msg, index) => (
@@ -187,18 +207,23 @@ export function Room({ host, room, token, displayName, onLeave }: RoomProps) {
           placeholder="name"
           maxLength={32}
           aria-label="Display name"
+          autoComplete="nickname"
         />
         <input
+          ref={inputRef}
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
-          placeholder="Message the room"
+          placeholder={
+            status === "connected" ? "Message the room" : "Connecting…"
+          }
           maxLength={2000}
           aria-label="Message"
+          disabled={status !== "connected"}
         />
         <button
           type="submit"
           className="btn btn-primary"
-          disabled={status !== "connected"}
+          disabled={status !== "connected" || draft.trim().length === 0}
         >
           Send
         </button>

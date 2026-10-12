@@ -13,7 +13,8 @@ Browser (partysocket) → /parties/:party/:room → room actor → durable stora
 ```sh
 pnpm install
 pnpm build
-pnpm --filter @sinkd/cli exec sinkd dev --root apps/parties
+pnpm doctor
+pnpm dev
 ```
 
 In another terminal:
@@ -22,9 +23,9 @@ In another terminal:
 pnpm dev:studio
 ```
 
-Open the Studio URL Vite prints (http://127.0.0.1:5173 by default) — enter a room, open a second tab, send messages.
+Open the Studio URL Vite prints (`http://127.0.0.1:5173` by default) — enter a room, open a second tab, send messages.
 
-Default lobby token: `dev-token` (see `apps/parties/sinkd.json`).
+Default lobby token: `dev-token` (see `apps/parties/sinkd.json`). JWT lobby auth is supported via `auth.jwtSecret`.
 
 ## Packages
 
@@ -33,8 +34,10 @@ Default lobby token: `dev-token` (see `apps/parties/sinkd.json`).
 | `@sinkd/contracts` | URL shape, tag limits, errors |
 | `@sinkd/server` | PartyServer-compatible `Server` / `Connection` |
 | `@sinkd/runtime` | Node HTTP + WebSocket host, SQLite rooms |
+| `@sinkd/auth` | Shared-token + JWT lobby gates, origin allowlists |
+| `@sinkd/adapter-celld` | Durable Object host + `routeSinkdRequest` for celld |
 | `@sinkd/config` | `sinkd.json` → wrangler bindings |
-| `@sinkd/cli` | `sinkd init` / `dev` / `deploy` |
+| `@sinkd/cli` | `sinkd init` / `dev` / `deploy` / `doctor` |
 | `@sinkd/client` | thin `partysocket` helpers |
 | `@sinkd/studio` | brand + live room UI |
 | `@sinkd/parties` | example Chat party |
@@ -42,21 +45,22 @@ Default lobby token: `dev-token` (see `apps/parties/sinkd.json`).
 ## CLI
 
 ```sh
-pnpm --filter @sinkd/cli exec sinkd init my-app
-pnpm --filter @sinkd/cli exec sinkd dev --root my-app
-pnpm --filter @sinkd/cli exec sinkd deploy --config my-app/sinkd.json
+pnpm doctor
+pnpm --filter @sinkd/cli exec tsx src/bin.ts init ./my-app
+pnpm --filter @sinkd/cli exec tsx src/bin.ts dev --root ./my-app
+pnpm --filter @sinkd/cli exec tsx src/bin.ts deploy --config ./my-app/sinkd.json
 ```
 
 ## celld fleets
 
-This machine (Darwin x86_64) has no celld prebuild. Use Docker on Linux hosts:
+Darwin x86_64 has no celld prebuild. Local DX uses `@sinkd/runtime`. Fleets:
 
 ```sh
-# from a Worker project with wrangler.jsonc
-docker run --rm -v "$PWD":/app -w /app ghcr.io/denoland/celld deploy .
+pnpm celld:spike   # requires Docker daemon
+# or compose: deploy/docker-compose.yml with CELLD_BUCKET set
 ```
 
-See `deploy/docker-compose.yml` for a two-node + Caddy template.
+Compatibility matrix: `docs/compat.md`.
 
 ## Docs
 
