@@ -115,7 +115,11 @@ fi
 echo "==> HTTP party probe"
 curl -si "http://127.0.0.1:${PORT}/parties/main/spike?token=dev-token" | head -40
 
+echo "==> WebSocket broadcast probe"
+cd "$ROOT"
+pnpm --filter @sinkd/runtime exec node ./scripts/ws-smoke.mjs "http://127.0.0.1:${PORT}"
+
 echo
-echo "Spike OK via $RUNTIME."
+echo "Spike OK via $RUNTIME (HTTP + WebSocket)."
 echo "Party URL: http://127.0.0.1:${PORT}/parties/main/<room>?token=dev-token"
 echo "Keep running: SINKD_SPIKE_KEEP=1 pnpm celld:spike"

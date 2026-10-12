@@ -1,0 +1,61 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm test
+      - run: pnpm --filter @sinkd/studio run build
+      - name: Node runtime WS smoke
+        run: |
+          pnpm --filter @sinkd/cli exec tsx src/bin.ts dev --root ../../apps/parties --port 8787 &
+          pid=$!
+          trap 'kill $pid' EXIT
+          for i in $(seq 1 30); do
+            curl -sf http://127.0.0.1:8787/healthz && break
+            sleep 0.5
+          done
+          pnpm --filter @sinkd/runtime exec node ./scripts/ws-smoke.mjs http://127.0.0.1:8787
+
+  celld-podman:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: build-test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - name: Install podman
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y podman
+          podman info
+      - name: celld spike (HTTP + WS)
+        run: pnpm celld:spike

@@ -21,7 +21,9 @@
     "typecheck": "pnpm -r run typecheck",
     "lint": "pnpm -r run typecheck",
     "studio:build": "pnpm --filter @sinkd/studio build",
-    "celld:spike": "bash ./scripts/celld-spike.sh"
+    "celld:spike": "bash ./scripts/celld-spike.sh",
+    "ws:smoke": "pnpm --filter @sinkd/runtime exec node ./scripts/ws-smoke.mjs",
+    "fleet:minio": "SINKD_MINIO=1 bash ./scripts/compose.sh up -d"
   },
   "devDependencies": {
     "concurrently": "^9.2.1",
