@@ -24,7 +24,7 @@ Last updated: 2026-10-12
 - Ownership moves close sockets with code **1012** — clients must reconnect (partysocket does).
 - Container CLI resolution: `scripts/container-runtime.sh` (override with `CONTAINER_CLI`).
 - **Fleet smoke:** `pnpm fleet:smoke` brings up MinIO and runs `celld deploy` on the compose network. MinIO remains unqualified for production durability; use R2/S3/GCS/Azure for real fleets.
-- **Observability:** Node `/healthz` includes `metrics` counters (connects, messages, lobby rejects, room activations, rate limits, alarms). Structured logs via `SINKD_LOG_LEVEL` / `SINKD_LOG_JSON=1`.
+- **Observability:** Node `/healthz` (JSON) and `/metrics` (Prometheus text). Structured logs via `SINKD_LOG_LEVEL` / `SINKD_LOG_JSON=1`.
 
 ## Tag probe
 

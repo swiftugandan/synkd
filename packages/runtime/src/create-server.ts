@@ -21,6 +21,7 @@ import {
 import { AlarmScheduler } from "./alarms.js";
 import { applyCors, resolveCorsHeaders } from "./cors.js";
 import { createLogger, type LogLevel, type SinkdLogger } from "./logger.js";
+import { formatPrometheusMetrics } from "./metrics-text.js";
 import { SlidingWindowLimiter } from "./rate-limit.js";
 import { SqliteStorage } from "./sqlite-storage.js";
 
@@ -337,6 +338,26 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
           });
           const response = applyCors(
             Response.json(body),
+            corsHeaders,
+          );
+          await writeWebResponse(res, response);
+          return;
+        }
+
+        if (url.pathname === "/metrics") {
+          const body = formatPrometheusMetrics({
+            version,
+            uptimeMs: Date.now() - startedAt,
+            rooms: rooms.size,
+            connections: countConnections(),
+            metrics: { ...metrics },
+          });
+          const response = applyCors(
+            new Response(body, {
+              headers: {
+                "content-type": "text/plain; version=0.0.4; charset=utf-8",
+              },
+            }),
             corsHeaders,
           );
           await writeWebResponse(res, response);

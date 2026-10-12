@@ -50,6 +50,7 @@ export function Room({
   const [draft, setDraft] = useState("");
   const [name, setName] = useState(displayName ?? "");
   const [messageCount, setMessageCount] = useState(0);
+  const [lastHeartbeat, setLastHeartbeat] = useState<number | null>(null);
   const [reconnectNonce, setReconnectNonce] = useState(0);
   const listRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef<ReturnType<typeof createSinkdSocket> | null>(null);
@@ -78,6 +79,11 @@ export function Room({
         const data = JSON.parse(String(event.data)) as ChatMessage;
         if (data.type === "presence") {
           setRoster(data.roster);
+          return;
+        }
+        if (data.type === "system" && data.text === "heartbeat") {
+          setLastHeartbeat(data.at);
+          if (data.roster) setRoster(data.roster);
           return;
         }
         if (data.type === "system" && data.roster) {
@@ -156,6 +162,16 @@ export function Room({
           ) : null}
           {roster.length > 0 ? (
             <span className="room-stat"> · {roster.length} online</span>
+          ) : null}
+          {lastHeartbeat ? (
+            <span className="room-stat" title={new Date(lastHeartbeat).toISOString()}>
+              {" "}
+              · hb {new Date(lastHeartbeat).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+              })}
+            </span>
           ) : null}
         </div>
         <div

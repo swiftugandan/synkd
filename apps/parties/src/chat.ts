@@ -55,6 +55,7 @@ export class Chat extends Server<PartyEnv> {
       }),
     );
     void this.#notifyPresence({ id: conn.id, event: "joined" });
+    void this.#scheduleHeartbeat();
   }
 
   override onClose(conn: Connection): void {
@@ -130,9 +131,36 @@ export class Chat extends Server<PartyEnv> {
         room: this.name,
         connections: this.connections.size,
         messageCount: (await this.storage.get<number>("messageCount")) ?? 0,
+        nextAlarm: (await this.storage.getAlarm?.()) ?? null,
       });
     }
     return new Response("Method Not Allowed", { status: 405 });
+  }
+
+  /** Soft room heartbeat — proves Node AlarmScheduler + DO alarm() path. */
+  override async onAlarm(): Promise<void> {
+    if (this.connections.size === 0) return;
+    this.broadcast(
+      JSON.stringify({
+        type: "system",
+        text: "heartbeat",
+        at: Date.now(),
+        roster: [...this.getConnections()].map((c) => ({
+          id: c.id,
+          name: (c.state as { name?: string } | null)?.name,
+        })),
+      }),
+    );
+    await this.#scheduleHeartbeat();
+  }
+
+  async #scheduleHeartbeat(): Promise<void> {
+    if (!this.storage.setAlarm) return;
+    if (this.connections.size === 0) {
+      await this.storage.deleteAlarm?.();
+      return;
+    }
+    await this.storage.setAlarm(Date.now() + 30_000);
   }
 }
 

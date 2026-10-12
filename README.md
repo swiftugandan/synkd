@@ -76,7 +76,9 @@ Studio can target Node (`?backend=node`) or celld (`?backend=celld` on `:9876`).
 pnpm test:e2e      # Playwright two-tab chat
 ```
 
-Compatibility matrix: `docs/compat.md`.
+Compatibility matrix: `docs/compat.md`. Yjs pads: `docs/yjs.md`.
+
+Ops: `GET /healthz` (JSON) and `GET /metrics` (Prometheus text).
 
 ## Docs
 
