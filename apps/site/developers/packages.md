@@ -18,6 +18,8 @@ Install from this monorepo with pnpm workspaces. Published names use the `@synkd
 | `@synkd/cli` | `synkd init`, `dev`, `deploy`, `doctor` |
 | `@synkd/ui` | Shared brand tokens for Studio and Console |
 
+Until packages are on the public registry, run the CLI from this monorepo. `synkd init` and `synkd dev` link `@synkd/*` into your project from the CLI install. Details: [CLI](./cli).
+
 ## Apps in this repo
 
 | App | Role |

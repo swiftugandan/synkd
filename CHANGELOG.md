@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- `synkd init` / `synkd dev`: link `@synkd/*` from the CLI install so a new project serves parties without an npm publish
+
+### Docs
+
+- Developer CLI guide; get-started covers example stack and CLI project paths
+
 ## 0.1.0 — 2026-10-12
 
 ### Added

@@ -72,6 +72,7 @@ export default defineConfig({
           items: [
             { text: "Overview", link: "/developers/" },
             { text: "Get started", link: "/developers/get-started" },
+            { text: "CLI", link: "/developers/cli" },
             { text: "Write a party", link: "/developers/write-a-party" },
             { text: "Connect clients", link: "/developers/connect-clients" },
             {

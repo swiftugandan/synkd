@@ -50,10 +50,11 @@ curl -s -H "Authorization: Bearer dev-admin" \
 | `auth.token` | `dev-token` | Guests / Studio |
 | `auth.adminToken` | `dev-admin` | Console / `/v1` |
 
-Change these before any shared or public deploy. See [Security](./security).
+Projects created with `synkd init` use the same defaults. Change them before any shared or public deploy. See [Security](./security).
 
 ## What to do next
 
 - [Configure a fleet](./configure)
 - [Use the Console](./console)
 - [Monitor health](./monitor)
+- Developers: [CLI](/developers/cli)

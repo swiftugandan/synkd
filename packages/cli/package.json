@@ -22,8 +22,10 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@synkd/adapter-celld": "workspace:*",
     "@synkd/auth": "workspace:*",
     "@synkd/config": "workspace:*",
+    "@synkd/contracts": "workspace:*",
     "@synkd/runtime": "workspace:*",
     "@synkd/server": "workspace:*",
     "commander": "^14.0.1",

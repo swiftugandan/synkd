@@ -11,6 +11,10 @@ import {
   type SynkdConfig,
 } from "@synkd/config";
 import { createSynkdRuntime, type SynkdRuntime } from "@synkd/runtime";
+import {
+  ensureSynkdPackageLinks,
+  synkdDependencySpecs,
+} from "./link-packages.js";
 import { loadParties } from "./load-parties.js";
 import { watchPartySources } from "./watch-parties.js";
 
@@ -83,8 +87,10 @@ function initProject(dir: string, name: string): void {
     parties: {
       main: { entry: "./src/chat.ts", export: "Chat", className: "ChatDO" },
     },
-    auth: { token: "dev-token" },
+    auth: { token: "dev-token", adminToken: "dev-admin" },
+    tenantId: "default",
     cors: true,
+    storageDir: ".synkd/rooms",
   };
 
   writeFileSync(join(dir, "synkd.json"), `${JSON.stringify(config, null, 2)}\n`);
@@ -101,6 +107,7 @@ function initProject(dir: string, name: string): void {
           deploy: "synkd deploy",
           doctor: "synkd doctor",
         },
+        dependencies: synkdDependencySpecs(),
       },
       null,
       2,
@@ -185,15 +192,21 @@ export default {
     `# ${name}
 
 \`\`\`sh
-synkd doctor
-synkd dev
+synkd doctor --root .
+synkd dev --root .
 \`\`\`
 
-Connect with partysocket and \`?token=dev-token\`.
+Guest token: \`dev-token\`. Admin token: \`dev-admin\`.
+
+\`synkd dev\` links \`@synkd/*\` from the CLI install when packages are not on the registry yet.
 `,
   );
 
+  const linked = ensureSynkdPackageLinks(dir);
   console.log(`Initialized synkd project in ${dir}`);
+  if (linked.length > 0) {
+    console.log(`  linked:  ${linked.join(", ")}`);
+  }
   console.log(`  synkd doctor --root ${dir}`);
   console.log(`  synkd dev --root ${dir}`);
 }
@@ -206,6 +219,7 @@ async function runDev(
     throw new Error(`Missing config: ${configPath} (run synkd init)`);
   }
   const root = dirname(configPath);
+  ensureSynkdPackageLinks(root);
 
   const tsx = (await import("tsx/esm/api")) as {
     register: () => () => void;
@@ -348,6 +362,16 @@ function doctor(configPath: string): void {
   });
 
   if (existsSync(configPath)) {
+    const root = dirname(configPath);
+    const linked = ensureSynkdPackageLinks(root);
+    checks.push({
+      ok: existsSync(join(root, "node_modules/@synkd/server")),
+      label: "@synkd/server resolvable",
+      detail:
+        linked.length > 0
+          ? `linked ${linked.length} package(s) from CLI`
+          : "node_modules/@synkd/server",
+    });
     try {
       const config = loadSynkdConfig(configPath);
       checks.push({ ok: true, label: "synkd.json", detail: config.name });

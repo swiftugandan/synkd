@@ -1,6 +1,6 @@
 # Get started
 
-This guide gets a local synkd stack running so you can open a room in Studio.
+This guide gets synkd running on your machine. You can use the example apps in this repo, or create a new project with the CLI.
 
 ## Before you start
 
@@ -16,7 +16,7 @@ node -v
 pnpm -v
 ```
 
-## Install and build
+## Option A — example stack in this repo
 
 From the repository root:
 
@@ -24,24 +24,7 @@ From the repository root:
 pnpm install
 pnpm build
 pnpm doctor
-```
-
-`doctor` checks that `synkd.json` and party entries look valid.
-
-## Run the stack
-
-Start the runtime, Studio, and Console together:
-
-```sh
 pnpm dev:all
-```
-
-Or start them in separate terminals:
-
-```sh
-pnpm dev
-pnpm dev:studio
-pnpm dev:console
 ```
 
 | App | URL | Who uses it |
@@ -49,26 +32,49 @@ pnpm dev:console
 | Runtime | http://127.0.0.1:8787 | Parties and WebSockets |
 | Studio | http://127.0.0.1:5173 | Guests (chat and pad) |
 | Console | http://127.0.0.1:5174 | Operators |
+| Docs site | http://127.0.0.1:5180 | Guides |
 
-## Open a room
+Or start processes separately:
+
+```sh
+pnpm dev
+pnpm dev:studio
+pnpm dev:console
+pnpm dev:site
+```
+
+### Open a room
 
 1. Open Studio.
 2. Choose Chat or Pad.
 3. Keep Runtime set to Node.
 4. Enter a room id and select **Enter room**.
 
-The guest lobby token defaults to `dev-token` (see `apps/parties/synkd.json`).
+The guest token is `dev-token`. The admin token for Console is `dev-admin`. Both are in `apps/parties/synkd.json`.
 
-## Check the runtime is healthy
+### Check health
 
 ```sh
 curl -s http://127.0.0.1:8787/healthz
 ```
 
-You should see JSON with `"ok": true` and `"service": "synkd"`.
+You should see `"ok": true` and `"service": "synkd"`.
+
+## Option B — new project with the CLI
+
+```sh
+pnpm install
+pnpm build
+pnpm --filter @synkd/cli exec tsx src/bin.ts init ./my-rooms --name my-rooms
+pnpm --filter @synkd/cli exec tsx src/bin.ts doctor --root ./my-rooms
+pnpm --filter @synkd/cli exec tsx src/bin.ts dev --root ./my-rooms
+```
+
+The CLI links `@synkd/*` packages from this monorepo so `dev` works before those packages are on npm. Full command reference: [CLI](./cli).
 
 ## What to do next
 
-- [Write a party](./write-a-party) if you are adding server logic
-- [Connect clients](./connect-clients) if you are wiring a browser app
-- [Operator get started](/operators/get-started) if you need Console access
+- [CLI](./cli) — `init`, `doctor`, `dev`, `deploy`
+- [Write a party](./write-a-party)
+- [Connect clients](./connect-clients)
+- [Operator get started](/operators/get-started) for Console and `/v1`

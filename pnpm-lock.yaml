@@ -160,12 +160,18 @@ importers:
 
   packages/cli:
     dependencies:
+      '@synkd/adapter-celld':
+        specifier: workspace:*
+        version: link:../adapter-celld
       '@synkd/auth':
         specifier: workspace:*
         version: link:../auth
       '@synkd/config':
         specifier: workspace:*
         version: link:../config
+      '@synkd/contracts':
+        specifier: workspace:*
+        version: link:../contracts
       '@synkd/runtime':
         specifier: workspace:*
         version: link:../runtime

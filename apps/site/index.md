@@ -65,6 +65,6 @@ Then open:
 
 ## Choose your path
 
-If you are writing party code or a client app, read [Get started for developers](/developers/get-started).
+If you are writing party code or a client app, read [Get started for developers](/developers/get-started). To scaffold a project, use the [CLI](/developers/cli).
 
 If you are installing, securing, or monitoring a fleet, read [Get started for operators](/operators/get-started).

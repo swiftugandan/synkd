@@ -25,6 +25,8 @@ Canonical browsing path is the VitePress site. Markdown under `apps/site/` is th
 
 ## Quick start
 
+Example stack in this repo:
+
 ```sh
 pnpm install
 pnpm build
@@ -40,6 +42,16 @@ pnpm dev:all
 | Runtime | http://127.0.0.1:8787 |
 
 Guest token: `dev-token`. Config: `apps/parties/synkd.json`.
+
+New project with the CLI:
+
+```sh
+pnpm --filter @synkd/cli exec tsx src/bin.ts init ./my-rooms --name my-rooms
+pnpm --filter @synkd/cli exec tsx src/bin.ts doctor --root ./my-rooms
+pnpm --filter @synkd/cli exec tsx src/bin.ts dev --root ./my-rooms
+```
+
+The CLI links `@synkd/*` from this monorepo so `dev` works before npm publish. Guide: [CLI](./apps/site/developers/cli.md).
 
 ## Packages
 

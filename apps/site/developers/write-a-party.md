@@ -61,22 +61,20 @@ Enable idle unload with `static options = { hibernate: true }` when the party ca
 
 ## Hot reload
 
-`pnpm dev` watches party source files and reloads them. Active sockets close with code **1012** so clients can reconnect.
+`synkd dev` (and `pnpm dev` in this repo) watches party source files and reloads them. Active sockets close with code **1012** so clients can reconnect.
 
 Disable watching with `--no-watch` if you need a fixed process for debugging.
 
-## Scaffold a new project
+## Start from a new project
+
+Use the CLI to scaffold a Chat party, then edit `src/chat.ts`:
 
 ```sh
-pnpm --filter @synkd/cli exec tsx src/bin.ts init --name my-rooms
+pnpm --filter @synkd/cli exec tsx src/bin.ts init ./my-rooms --name my-rooms
+pnpm --filter @synkd/cli exec tsx src/bin.ts dev --root ./my-rooms
 ```
 
-Then:
-
-```sh
-synkd doctor --root ./my-rooms
-synkd dev --root ./my-rooms
-```
+See [CLI](./cli) for linking, tokens, and deploy.
 
 ## What to do next
 

@@ -11,7 +11,7 @@ Open [http://127.0.0.1:5180](http://127.0.0.1:5180).
 | Section | Path |
 | --- | --- |
 | Marketing home | `/` |
-| Developers | `/developers/` |
+| Developers | `/developers/` (includes [CLI](../apps/site/developers/cli.md)) |
 | Operators | `/operators/` |
 | Architecture | `/architecture/` (token-driven SVGs) |
 

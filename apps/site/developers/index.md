@@ -5,6 +5,7 @@ These pages are for people who write parties and client apps.
 ## What you will learn
 
 - how to run synkd on your machine
+- how to create a project with the CLI
 - how to write a party class
 - how to connect with partysocket
 - how to add a Yjs collaborative pad
@@ -13,9 +14,10 @@ These pages are for people who write parties and client apps.
 
 ## Start here
 
-1. [Get started](./get-started) — install and run the examples
-2. [Write a party](./write-a-party) — Server API and config
-3. [Connect clients](./connect-clients) — partysocket and auth tokens
+1. [Get started](./get-started) — example stack or a new CLI project
+2. [CLI](./cli) — `init`, `doctor`, `dev`, `deploy`
+3. [Write a party](./write-a-party) — Server API and config
+4. [Connect clients](./connect-clients) — partysocket and auth tokens
 
 ## Related
 
