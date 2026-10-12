@@ -40,6 +40,8 @@ describe("createSinkdRuntime", () => {
         host: "127.0.0.1",
         port: 0,
         storageDir: null,
+        logLevel: "error",
+        alarmIntervalMs: 0,
         onBeforeConnect: (req) => {
           const token = new URL(req.url).searchParams.get("token");
           if (token !== "secret") {
@@ -84,6 +86,8 @@ describe("createSinkdRuntime", () => {
       host: "127.0.0.1",
       port: 0,
       storageDir: null,
+      logLevel: "error",
+      alarmIntervalMs: 0,
       onBeforeConnect: (req) => {
         if (!new URL(req.url).searchParams.get("token")) {
           return new Response("Unauthorized", { status: 401 });

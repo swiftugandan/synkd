@@ -18,7 +18,9 @@ import {
   type PartyServerOptions,
   type Server,
 } from "@sinkd/server";
+import { AlarmScheduler } from "./alarms.js";
 import { applyCors, resolveCorsHeaders } from "./cors.js";
+import { createLogger, type LogLevel, type SinkdLogger } from "./logger.js";
 import { SlidingWindowLimiter } from "./rate-limit.js";
 import { SqliteStorage } from "./sqlite-storage.js";
 
@@ -39,6 +41,11 @@ export interface SinkdRuntimeOptions {
   onBeforeRequest?: PartyServerOptions["onBeforeRequest"];
   /** Fallback for non-party HTTP routes */
   onFetch?: (request: Request) => Response | Promise<Response>;
+  /** Structured logger (default: createLogger from env) */
+  logger?: SinkdLogger;
+  logLevel?: LogLevel;
+  /** Alarm poll interval ms (default 1000; set 0 to disable) */
+  alarmIntervalMs?: number;
 }
 
 export interface SinkdRuntime {
@@ -66,6 +73,14 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
   const startedAt = Date.now();
   const rooms = new Map<string, RoomHandle>();
   const corsHeaders = resolveCorsHeaders(options.cors ?? true);
+  const log =
+    options.logger ??
+    createLogger({
+      level:
+        options.logLevel ??
+        (process.env.SINKD_LOG_LEVEL as LogLevel | undefined) ??
+        "info",
+    });
   const metrics = {
     connects: 0,
     disconnects: 0,
@@ -74,7 +89,25 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
     roomActivations: 0,
     rateLimited: 0,
     httpRequests: 0,
+    alarms: 0,
   };
+  const alarms = new AlarmScheduler(
+    () =>
+      [...rooms.entries()].map(([key, handle]) => ({
+        key,
+        server: handle.server,
+        storage: handle.storage,
+      })),
+    {
+      info: (msg, fields) => {
+        if (msg === "alarm.fired") metrics.alarms += 1;
+        log.info(msg, fields);
+      },
+      debug: log.debug.bind(log),
+      warn: log.warn.bind(log),
+      error: log.error.bind(log),
+    },
+  );
 
   const httpServer = createHttpServer();
   const wss = new WebSocketServer({ noServer: true });
@@ -127,7 +160,10 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
     const server = new Party(room, storage, partyEnv);
     const handle = { server, storage };
     rooms.set(key, handle);
-    if (!opts?.skipRateLimit) metrics.roomActivations += 1;
+    if (!opts?.skipRateLimit) {
+      metrics.roomActivations += 1;
+      log.info("room.activated", { party, room, key });
+    }
     return handle;
   }
 
@@ -271,7 +307,9 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
           void attachSocket(ws, handle.server, lobbyResult, url);
         });
       } catch (error) {
-        console.error("[sinkd] upgrade failed", error);
+        log.error("upgrade.failed", {
+          error: error instanceof Error ? error.message : String(error),
+        });
         socket.destroy();
       }
     })();
@@ -363,7 +401,9 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
         const response = await handle.server.handleHttp(lobbyResult);
         await writeWebResponse(res, applyCors(response, corsHeaders));
       } catch (error) {
-        console.error("[sinkd] request failed", error);
+        log.error("request.failed", {
+          error: error instanceof Error ? error.message : String(error),
+        });
         res.statusCode = 500;
         res.end("Internal Server Error");
       }
@@ -389,6 +429,7 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
       },
     });
     metrics.connects += 1;
+    log.debug("ws.connect", { connectionId: id, room: server.name });
 
     ws.on("message", (data, isBinary) => {
       metrics.messages += 1;
@@ -400,6 +441,11 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
 
     ws.on("close", (code, reason) => {
       metrics.disconnects += 1;
+      log.debug("ws.close", {
+        connectionId: id,
+        room: server.name,
+        code,
+      });
       void server.detachConnection(
         connection.id,
         code,
@@ -409,6 +455,10 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
     });
 
     ws.on("error", (error) => {
+      log.warn("ws.error", {
+        connectionId: id,
+        error: error instanceof Error ? error.message : String(error),
+      });
       void server.onError(connection, error);
     });
   }
@@ -431,9 +481,17 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
           resolve();
         });
       });
+      const interval = options.alarmIntervalMs ?? 1000;
+      if (interval > 0) alarms.start(interval);
+      log.info("runtime.listen", {
+        url: listeningUrl,
+        parties: Object.keys(options.parties),
+        alarmIntervalMs: interval,
+      });
       return listeningUrl;
     },
     async close() {
+      alarms.stop();
       for (const client of wss.clients) {
         client.terminate();
       }
@@ -450,6 +508,7 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
         if (room.storage instanceof SqliteStorage) room.storage.close();
       }
       rooms.clear();
+      log.info("runtime.closed", { url: listeningUrl });
     },
   };
 }
