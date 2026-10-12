@@ -9,6 +9,8 @@ apps/parties/.celld
 .DS_Store
 coverage
 apps/studio/dist
+apps/studio/test-results
+apps/studio/playwright-report
 .env
 .env.*
 !.env.example
