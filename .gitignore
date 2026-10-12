@@ -16,6 +16,8 @@ apps/studio/playwright-report
 apps/console/dist
 apps/console/test-results
 apps/console/playwright-report
+apps/site/.vitepress/dist
+apps/site/.vitepress/cache
 .env
 .env.*
 !.env.example

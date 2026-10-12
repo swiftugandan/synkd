@@ -1,5 +1,9 @@
 # Software Architecture Document
 
+Browseable diagrams (GDS prose + SVGs): run `pnpm dev:site` and open
+[`/architecture/`](./apps/site/architecture/index.md)
+(`http://127.0.0.1:5180/architecture/`).
+
 ## 30,000-ft view
 
 ### Context

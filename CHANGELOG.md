@@ -1,9 +1,13 @@
 # Changelog
 
-## 0.1.0 — unreleased
+## 0.1.0 — 2026-10-12
 
 ### Added
 
+- Marketing + docs site (`@synkd/site`) with developer, operator, and architecture guides
+- Architecture SVGs: context, packages, request path, trust, control plane, fleet
+- Operator Console (`@synkd/console`) and `/v1` control API
+- `@synkd/ui` brand tokens; rename sinkd → synkd (`SYNKD_*` with `SINKD_*` aliases)
 - Node idle-room hibernation (`roomIdleMs`) with SQLite wake; WS close **1012** on runtime drain
 - Studio banners for service-restart (1012) vs plain disconnect
 - Production-shaped Caddy TLS ingress (`deploy/`) + local `tls internal` overlay

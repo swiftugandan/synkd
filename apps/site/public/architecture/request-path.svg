@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="410.4pt" height="108pt"
+     viewBox="0 0 410.4 108" role="img"
+     aria-label="A client request passes lobby auth, party routing, then a sticky
+                 room actor with storage. Hibernation can unload an idle room.">
+  <defs>
+    <marker id="req-arrow" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--ink, #d7f0ea)"/>
+    </marker>
+  </defs>
+
+  <rect x="0.5" y="12.5" width="68" height="36" rx="2"
+        fill="var(--paper, #0a1f2c)" stroke="var(--ink, #d7f0ea)" stroke-width="1"/>
+  <text x="34.5" y="28" text-anchor="middle" font-size="8"
+        font-family="var(--sans, 'Avenir Next', Arial, sans-serif)"
+        fill="var(--ink, #d7f0ea)">Client</text>
+  <text x="34.5" y="40" text-anchor="middle" font-size="6.5"
+        font-family="var(--mono, 'Courier New', monospace)"
+        fill="var(--ink, #d7f0ea)">WS / HTTP</text>
+
+  <line x1="70" y1="30.5" x2="84" y2="30.5"
+        stroke="var(--ink, #d7f0ea)" stroke-width="1" marker-end="url(#req-arrow)"/>
+
+  <rect x="86.5" y="12.5" width="72" height="36" rx="2"
+        fill="var(--paper, #0a1f2c)" stroke="var(--ink, #d7f0ea)" stroke-width="1"/>
+  <text x="122.5" y="28" text-anchor="middle" font-size="8"
+        font-family="var(--sans, 'Avenir Next', Arial, sans-serif)"
+        fill="var(--ink, #d7f0ea)">Lobby auth</text>
+  <text x="122.5" y="40" text-anchor="middle" font-size="6.5"
+        font-family="var(--mono, 'Courier New', monospace)"
+        fill="var(--ink, #d7f0ea)">token / JWT</text>
+
+  <line x1="160" y1="30.5" x2="174" y2="30.5"
+        stroke="var(--ink, #d7f0ea)" stroke-width="1" marker-end="url(#req-arrow)"/>
+
+  <rect x="176.5" y="12.5" width="72" height="36" rx="2"
+        fill="var(--paper, #0a1f2c)" stroke="var(--ink, #d7f0ea)" stroke-width="1"/>
+  <text x="212.5" y="28" text-anchor="middle" font-size="8"
+        font-family="var(--sans, 'Avenir Next', Arial, sans-serif)"
+        fill="var(--ink, #d7f0ea)">Route</text>
+  <text x="212.5" y="40" text-anchor="middle" font-size="6.5"
+        font-family="var(--mono, 'Courier New', monospace)"
+        fill="var(--ink, #d7f0ea)">/parties/...</text>
+
+  <line x1="250" y1="30.5" x2="264" y2="30.5"
+        stroke="var(--ink, #d7f0ea)" stroke-width="1" marker-end="url(#req-arrow)"/>
+
+  <rect x="266.5" y="12.5" width="78" height="36" rx="2"
+        fill="var(--pale, #123447)" stroke="var(--ink, #d7f0ea)" stroke-width="2"/>
+  <text x="305.5" y="28" text-anchor="middle" font-size="8"
+        font-family="var(--sans, 'Avenir Next', Arial, sans-serif)"
+        fill="var(--ink, #d7f0ea)">Room actor</text>
+  <text x="305.5" y="40" text-anchor="middle" font-size="6.5"
+        font-family="var(--mono, 'Courier New', monospace)"
+        fill="var(--ink, #d7f0ea)">sticky + storage</text>
+
+  <line x1="346" y1="30.5" x2="360" y2="30.5"
+        stroke="var(--ink, #d7f0ea)" stroke-width="1" marker-end="url(#req-arrow)"/>
+
+  <rect x="362.5" y="12.5" width="47" height="36" rx="2"
+        fill="var(--paper, #0a1f2c)" stroke="var(--ink, #d7f0ea)" stroke-width="1"/>
+  <text x="386" y="34" text-anchor="middle" font-size="8"
+        font-family="var(--sans, 'Avenir Next', Arial, sans-serif)"
+        fill="var(--ink, #d7f0ea)">KV</text>
+
+  <path d="M 305.5 50 L 305.5 68 L 122.5 68 L 122.5 50" fill="none"
+        stroke="var(--ink, #d7f0ea)" stroke-width="1" stroke-dasharray="4 3"
+        marker-end="url(#req-arrow)"/>
+  <text x="214" y="84" text-anchor="middle" font-size="7"
+        font-family="var(--sans, 'Avenir Next', Arial, sans-serif)"
+        fill="var(--ink, #d7f0ea)">idle unload / hibernate (close 1012)</text>
+  <text x="214" y="98" text-anchor="middle" font-size="7"
+        font-family="var(--mono, 'Courier New', monospace)"
+        fill="var(--ink, #d7f0ea)">clients reconnect</text>
+</svg>

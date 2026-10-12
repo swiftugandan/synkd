@@ -2,6 +2,10 @@
 
 PartyKit-shaped rooms on a **celld** fleet with cookie-sticky TLS ingress.
 
+Plain-English operator guide: run `pnpm dev:site` and open
+[Operators → Deploy with TLS](../apps/site/operators/deploy.md)
+(`http://127.0.0.1:5180/operators/deploy`).
+
 ## Topology
 
 ```

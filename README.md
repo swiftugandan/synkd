@@ -1,13 +1,27 @@
 # synkd
 
-Self-hosted **PartyKit-compatible** realtime rooms — production-shaped Node runtime, optional celld fleets, guest **Studio**, and operator **Console**.
+Self-hosted PartyKit-compatible realtime rooms on Node and celld.
 
-Formerly prototyped as `sinkd`; the Party URL shape `/parties/:party/:room` and `partysocket` clients are unchanged.
+## Documentation site
 
+Published docs: [https://swiftugandan.github.io/synkd/](https://swiftugandan.github.io/synkd/)
+
+Local:
+
+```sh
+pnpm install
+pnpm dev:site
 ```
-Browser (Studio / apps) → /parties/:party/:room → room actor → durable storage
-Operator (Console)      → /v1/* (admin)         → runtime inspector
-```
+
+Open [http://127.0.0.1:5180](http://127.0.0.1:5180).
+
+| Audience | Start here |
+| --- | --- |
+| Developers | [Developer docs](./apps/site/developers/index.md) → site `/developers/` |
+| Operators | [Operator docs](./apps/site/operators/index.md) → site `/operators/` |
+| Architecture | [Architecture](./apps/site/architecture/index.md) → site `/architecture/` (SVG diagrams) |
+
+Canonical browsing path is the VitePress site. Markdown under `apps/site/` is the source.
 
 ## Quick start
 
@@ -15,55 +29,38 @@ Operator (Console)      → /v1/* (admin)         → runtime inspector
 pnpm install
 pnpm build
 pnpm doctor
-pnpm dev          # hot-reloads party sources; --no-watch to disable
+pnpm dev:all
 ```
 
-In other terminals:
+| App | URL |
+| --- | --- |
+| Site | http://127.0.0.1:5180 |
+| Studio | http://127.0.0.1:5173 |
+| Console | http://127.0.0.1:5174 (admin: `dev-admin`) |
+| Runtime | http://127.0.0.1:8787 |
 
-```sh
-pnpm dev:studio    # http://127.0.0.1:5173
-pnpm dev:console   # http://127.0.0.1:5174  (admin token: dev-admin)
-```
-
-Or all at once: `pnpm dev:all`.
-
-Default guest token: `dev-token`. Admin token: `dev-admin` (see `apps/parties/synkd.json`). Legacy `sinkd.json` is still resolved if `synkd.json` is absent.
+Guest token: `dev-token`. Config: `apps/parties/synkd.json`.
 
 ## Packages
 
 | Package | Role |
 | --- | --- |
-| `@synkd/contracts` | URL shape, tag limits, errors |
-| `@synkd/server` | PartyServer-compatible `Server` / `Connection` |
-| `@synkd/runtime` | Node HTTP + WebSocket host, SQLite rooms, `/v1` mount |
-| `@synkd/control` | Operator control API router + `RuntimeInspector` |
-| `@synkd/auth` | Guest lobby + admin gates |
-| `@synkd/adapter-celld` | Durable Object host for celld |
-| `@synkd/config` | `synkd.json` → wrangler bindings |
+| `@synkd/server` | Party `Server` / `Connection` |
+| `@synkd/runtime` | Node host, SQLite rooms, `/v1` |
+| `@synkd/control` | Operator control API |
+| `@synkd/auth` | Guest and admin gates |
+| `@synkd/adapter-celld` | celld Durable Object host |
 | `@synkd/cli` | `synkd init` / `dev` / `deploy` / `doctor` |
-| `@synkd/client` | thin `partysocket` helpers |
-| `@synkd/y` | `YjsServer` (y-websocket sync + awareness) |
-| `@synkd/ui` | Shared brand tokens |
-| `@synkd/studio` | Guest chat / Yjs pad |
-| `@synkd/console` | Operator console |
-| `@synkd/parties` | example Chat, Presence, Docs parties |
+| `@synkd/y` | Yjs / y-websocket party base |
+| `@synkd/site` | Marketing + docs site |
+| `@synkd/studio` | Guest demo |
+| `@synkd/console` | Operator Console |
 
-## Ops
+Full package list: site → [Packages](./apps/site/developers/packages.md).
 
-- `GET /healthz` — JSON health
-- `GET /metrics` — Prometheus text
-- `GET /v1/health|rooms|capabilities|metrics` — admin Bearer required
-- `POST /v1/rooms/:party/:room/hibernate` — force unload
+## Ops pointers
 
-TLS fleet ingress: [`deploy/README.md`](./deploy/README.md). Security model: [`SECURITY.md`](./SECURITY.md). Multi-tenant pathway: [`docs/multi-tenant-path.md`](./docs/multi-tenant-path.md).
-
-## celld fleets
-
-Darwin x86_64 has no celld prebuild. Local DX uses `@synkd/runtime`. Fleets use **Podman** (preferred) or Docker:
-
-```sh
-pnpm celld:spike
-./scripts/compose.sh up -d
-```
-
-Compatibility: `docs/compat.md`. Yjs: `docs/yjs.md`.
+- Health: `GET /healthz`, Prometheus: `GET /metrics`
+- Admin: `GET /v1/*` (Bearer admin token)
+- TLS fleets: [`deploy/README.md`](./deploy/README.md) and site → [Deploy](./apps/site/operators/deploy.md)
+- Security model: [`SECURITY.md`](./SECURITY.md) and site → [Security](./apps/site/operators/security.md)

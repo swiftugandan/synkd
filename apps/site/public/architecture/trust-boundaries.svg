@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="410.4pt" height="148pt"
+     viewBox="0 0 410.4 148" role="img"
+     aria-label="Three nested trust boundaries: public edge, room actor, and
+                 fleet or process. Untrusted clients sit outside the edge.">
+  <rect x="0.5" y="8.5" width="409" height="128"
+        fill="var(--paper, #0a1f2c)" stroke="var(--ink, #d7f0ea)"
+        stroke-width="1" stroke-dasharray="5 3"/>
+  <text x="10" y="22" font-size="8"
+        font-family="var(--sans, 'Avenir Next', Arial, sans-serif)"
+        fill="var(--ink, #d7f0ea)">3 - Fleet / process - one trust domain</text>
+
+  <rect x="16.5" y="30.5" width="377" height="96"
+        fill="var(--paper, #0a1f2c)" stroke="var(--ink, #d7f0ea)" stroke-width="1"/>
+  <text x="26" y="44" font-size="8"
+        font-family="var(--sans, 'Avenir Next', Arial, sans-serif)"
+        fill="var(--ink, #d7f0ea)">2 - Public edge - TLS, Origin, lobby auth</text>
+
+  <rect x="28.5" y="52.5" width="100" height="62" rx="2"
+        fill="var(--pale, #123447)" stroke="var(--ink, #d7f0ea)" stroke-width="2"/>
+  <text x="78.5" y="74" text-anchor="middle" font-size="8"
+        font-family="var(--sans, 'Avenir Next', Arial, sans-serif)"
+        fill="var(--ink, #d7f0ea)">Untrusted</text>
+  <text x="78.5" y="88" text-anchor="middle" font-size="8"
+        font-family="var(--sans, 'Avenir Next', Arial, sans-serif)"
+        fill="var(--ink, #d7f0ea)">clients</text>
+  <text x="78.5" y="102" text-anchor="middle" font-size="6.5"
+        font-family="var(--mono, 'Courier New', monospace)"
+        fill="var(--ink, #d7f0ea)">browsers</text>
+
+  <rect x="148.5" y="52.5" width="230" height="62" rx="2"
+        fill="var(--paper, #0a1f2c)" stroke="var(--ink, #d7f0ea)" stroke-width="2"/>
+  <text x="263.5" y="70" text-anchor="middle" font-size="8"
+        font-family="var(--sans, 'Avenir Next', Arial, sans-serif)"
+        fill="var(--ink, #d7f0ea)">1 - Room actor</text>
+  <text x="263.5" y="84" text-anchor="middle" font-size="7"
+        font-family="var(--sans, 'Avenir Next', Arial, sans-serif)"
+        fill="var(--ink, #d7f0ea)">Trusted party code - shared sockets</text>
+  <text x="263.5" y="98" text-anchor="middle" font-size="6.5"
+        font-family="var(--mono, 'Courier New', monospace)"
+        fill="var(--ink, #d7f0ea)">storage - alarms - broadcast</text>
+
+  <line x1="130" y1="83.5" x2="146" y2="83.5"
+        stroke="var(--ink, #d7f0ea)" stroke-width="1"/>
+  <text x="205" y="142" text-anchor="middle" font-size="7"
+        font-family="var(--sans, 'Avenir Next', Arial, sans-serif)"
+        fill="var(--ink, #d7f0ea)">Heavy stroke = emphasised boundary - dashed = host trust domain</text>
+</svg>

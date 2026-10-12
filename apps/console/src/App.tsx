@@ -113,6 +113,7 @@ export function App() {
       <header className="topbar">
         <BrandMark size="md" meta="console" />
         <nav className="top-links" aria-label="Product">
+          <a href="http://127.0.0.1:5180/operators/">Docs</a>
           <a href={studioUrl}>Studio</a>
           <a href="/metrics" target="_blank" rel="noreferrer">
             /metrics
@@ -311,7 +312,10 @@ export function App() {
         ) : null}
       </main>
 
-      <p className="foot">synkd console · single-fleet operator surface</p>
+      <p className="foot">
+        synkd console ·{" "}
+        <a href="http://127.0.0.1:5180/operators/">operator docs</a>
+      </p>
     </div>
   );
 }

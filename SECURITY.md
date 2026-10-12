@@ -29,4 +29,6 @@ synkd v1 is a **single-fleet** service: one trust domain per Node process or cel
 - A hosted control plane / preview hosts (PartyKit cloud parity)
 - Encryption of room KV at rest beyond what the object store / disk provides
 
-See [`docs/multi-tenant-path.md`](./docs/multi-tenant-path.md) for the intended tenancy evolution.
+Operator-facing guide: site → [Security](./apps/site/operators/security.md) (`pnpm dev:site`).
+
+Tenancy evolution notes: [`docs/multi-tenant-path.md`](./docs/multi-tenant-path.md).

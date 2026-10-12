@@ -27,6 +27,9 @@ jobs:
       - run: pnpm test
       - run: pnpm --filter @synkd/studio run build
       - run: pnpm --filter @synkd/console run build
+      - run: pnpm --filter @synkd/site build
+        env:
+          SYNKD_SITE_BASE: /synkd/
       - name: Node runtime WS smoke
         run: |
           pnpm --filter @synkd/cli exec tsx src/bin.ts dev --root ../../apps/parties --port 8787 &

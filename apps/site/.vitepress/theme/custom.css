@@ -1,0 +1,193 @@
+:root {
+  --synkd-abyss: #041016;
+  --synkd-depth: #0a1f2c;
+  --synkd-shelf: #123447;
+  --synkd-foam: #d7f0ea;
+  --synkd-foam-dim: #9bb8b2;
+  --synkd-signal: #2ad4c0;
+  --synkd-signal-deep: #149a8c;
+  --synkd-line: rgba(215, 240, 234, 0.12);
+
+  --vp-c-brand-1: var(--synkd-signal);
+  --vp-c-brand-2: #4ae0cf;
+  --vp-c-brand-3: var(--synkd-signal-deep);
+  --vp-c-brand-soft: rgba(42, 212, 192, 0.14);
+
+  --vp-c-bg: var(--synkd-abyss);
+  --vp-c-bg-alt: #031018;
+  --vp-c-bg-elv: var(--synkd-depth);
+  --vp-c-bg-soft: rgba(18, 52, 71, 0.45);
+
+  --vp-c-text-1: var(--synkd-foam);
+  --vp-c-text-2: var(--synkd-foam-dim);
+  --vp-c-text-3: #7a9691;
+
+  --vp-c-divider: var(--synkd-line);
+  --vp-c-gutter: var(--synkd-line);
+  --vp-c-border: var(--synkd-line);
+
+  --vp-font-family-base: "Manrope", system-ui, sans-serif;
+  --vp-font-family-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: linear-gradient(
+    120deg,
+    var(--synkd-foam) 40%,
+    var(--synkd-signal)
+  );
+  --vp-home-hero-image-background-image: radial-gradient(
+    closest-side,
+    rgba(42, 212, 192, 0.22),
+    transparent
+  );
+}
+
+.dark {
+  --vp-c-bg: var(--synkd-abyss);
+  --vp-c-bg-alt: #031018;
+  --vp-c-bg-elv: var(--synkd-depth);
+}
+
+html {
+  color-scheme: dark;
+}
+
+.VPNavBarTitle .title {
+  font-family: "Syne", sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.VPHero .name {
+  font-family: "Syne", sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.VPHero .text {
+  font-family: "Syne", sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  max-width: 16ch;
+}
+
+.VPHero .tagline {
+  max-width: 38ch;
+  color: var(--synkd-foam-dim);
+}
+
+.VPFeature {
+  border-color: var(--synkd-line) !important;
+  background: rgba(4, 16, 22, 0.55) !important;
+}
+
+.VPFeature .title {
+  font-family: "Syne", sans-serif;
+  letter-spacing: -0.02em;
+}
+
+.vp-doc h1,
+.vp-doc h2,
+.vp-doc h3 {
+  font-family: "Syne", sans-serif;
+  letter-spacing: -0.03em;
+  font-weight: 700;
+}
+
+.vp-doc p,
+.vp-doc li {
+  max-width: 68ch;
+}
+
+.vp-doc a {
+  color: var(--synkd-signal);
+}
+
+.audience-split {
+  display: grid;
+  gap: 1.5rem;
+  margin: 2.5rem 0 1rem;
+}
+
+@media (min-width: 720px) {
+  .audience-split {
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+}
+
+.audience-split a.panel {
+  display: block;
+  padding: 1.35rem 1.4rem 1.5rem;
+  border-top: 1px solid var(--synkd-line);
+  border-bottom: 1px solid var(--synkd-line);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.audience-split a.panel:hover {
+  border-color: rgba(42, 212, 192, 0.45);
+  background: rgba(42, 212, 192, 0.05);
+}
+
+.audience-split h2 {
+  font-family: "Syne", sans-serif;
+  font-size: 1.45rem;
+  margin: 0 0 0.45rem;
+  letter-spacing: -0.03em;
+  border: none;
+  padding: 0;
+}
+
+.audience-split p {
+  margin: 0;
+  color: var(--synkd-foam-dim);
+}
+
+.audience-split .next {
+  display: inline-block;
+  margin-top: 0.9rem;
+  color: var(--synkd-signal);
+  font-family: var(--vp-font-family-mono);
+  font-size: 0.78rem;
+}
+
+.gds-note {
+  border-left: 3px solid var(--synkd-signal);
+  padding: 0.35rem 0 0.35rem 1rem;
+  margin: 1.25rem 0;
+  color: var(--synkd-foam-dim);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .audience-split a.panel {
+    transition: none;
+  }
+}
+
+/* Diagram tokens: site dark theme + print-safe SVG fallbacks */
+.vp-doc .diagram,
+.vp-doc img[src*="/architecture/"] {
+  display: block;
+  width: 100%;
+  max-width: 41.04rem;
+  height: auto;
+  margin: 1.25rem 0 1.75rem;
+  padding: 0.85rem 0.75rem;
+  border: 1px solid var(--synkd-line);
+  background: rgba(4, 16, 22, 0.65);
+  border-radius: 0.25rem;
+}
+
+.vp-doc svg {
+  --ink: var(--synkd-foam, #d7f0ea);
+  --paper: var(--synkd-depth, #0a1f2c);
+  --pale: var(--synkd-shelf, #123447);
+  --accent: var(--synkd-signal, #2ad4c0);
+  --support: var(--synkd-foam-dim, #9bb8b2);
+  --muted: var(--synkd-foam-dim, #9bb8b2);
+  --caution: var(--synkd-warn, #ffb020);
+  --sans: var(--synkd-font-body, Manrope, sans-serif);
+  --mono: var(--synkd-font-mono, "IBM Plex Mono", monospace);
+}

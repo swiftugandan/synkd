@@ -119,12 +119,10 @@ export function App() {
           <span className="brand-meta">self-hosted rooms</span>
         </div>
         <nav className="top-links" aria-label="References">
+          <a href="http://127.0.0.1:5180/">Docs</a>
           <a href="http://127.0.0.1:5174/">Console</a>
           <a href="https://celld.dev/docs/" target="_blank" rel="noreferrer">
             celld
-          </a>
-          <a href="https://docs.partykit.io/" target="_blank" rel="noreferrer">
-            PartyKit
           </a>
         </nav>
       </header>
@@ -330,7 +328,7 @@ export function App() {
         {" · "}
         <a href="http://127.0.0.1:5174/">console</a>
         {" · "}
-        fleet: deploy/README.md
+        <a href="http://127.0.0.1:5180/">docs</a>
       </p>
     </div>
   );
