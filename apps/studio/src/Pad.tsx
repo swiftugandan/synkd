@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { WS_CLOSE_SERVICE_RESTART } from "@sinkd/client";
 import * as Y from "yjs";
 import { WebsocketProvider } from "y-websocket";
 
@@ -32,6 +33,7 @@ export function Pad({
   const [status, setStatus] = useState<ConnState>("connecting");
   const [text, setText] = useState("");
   const [peers, setPeers] = useState<string[]>([]);
+  const [serviceRestart, setServiceRestart] = useState(false);
   const [reconnectNonce, setReconnectNonce] = useState(0);
   const areaRef = useRef<HTMLTextAreaElement>(null);
   const ytextRef = useRef<Y.Text | null>(null);
@@ -64,11 +66,22 @@ export function Pad({
     ytext.observe(syncUi);
 
     const onStatus = (event: { status: string }) => {
-      if (event.status === "connected") setStatus("connected");
-      else if (event.status === "disconnected") setStatus("disconnected");
+      if (event.status === "connected") {
+        setServiceRestart(false);
+        setStatus("connected");
+      } else if (event.status === "disconnected") setStatus("disconnected");
       else setStatus("connecting");
     };
     provider.on("status", onStatus);
+
+    const onWsClose = (event: CloseEvent) => {
+      if (event.code === WS_CLOSE_SERVICE_RESTART) setServiceRestart(true);
+    };
+    const bindWs = () => {
+      provider.ws?.addEventListener("close", onWsClose);
+    };
+    bindWs();
+    provider.on("status", bindWs);
 
     provider.awareness.setLocalStateField("user", { name });
     const syncPeers = () => {
@@ -87,6 +100,8 @@ export function Pad({
       ytext.unobserve(syncUi);
       provider.awareness.off("change", syncPeers);
       provider.off("status", onStatus);
+      provider.off("status", bindWs);
+      provider.ws?.removeEventListener("close", onWsClose);
       provider.destroy();
       doc.destroy();
       ytextRef.current = null;
@@ -108,8 +123,13 @@ export function Pad({
   return (
     <>
       {status === "disconnected" ? (
-        <div className="banner banner-warn" role="alert">
-          Pad disconnected. Reconnect to resume sync.
+        <div
+          className={`banner ${serviceRestart ? "banner-info" : "banner-warn"}`}
+          role="alert"
+        >
+          {serviceRestart
+            ? "Runtime restarted (close 1012). Pad will resync on reconnect."
+            : "Pad disconnected. Reconnect to resume sync."}
           <button
             type="button"
             className="btn btn-primary"

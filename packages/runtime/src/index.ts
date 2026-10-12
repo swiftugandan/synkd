@@ -9,3 +9,8 @@ export { SlidingWindowLimiter } from "./rate-limit.js";
 export { createLogger, type LogLevel, type SinkdLogger } from "./logger.js";
 export { AlarmScheduler, type AlarmRoom } from "./alarms.js";
 export { formatPrometheusMetrics } from "./metrics-text.js";
+export {
+  RoomHibernator,
+  partyAllowsHibernate,
+  type HibernateRoom,
+} from "./hibernate.js";

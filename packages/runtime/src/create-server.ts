@@ -7,6 +7,7 @@ import {
   DEFAULT_PARTY_PREFIX,
   SinkdError,
   SinkdErrorCode,
+  WS_CLOSE_SERVICE_RESTART,
   createHealthReport,
   parsePartyRoute,
   partyRoomKey,
@@ -20,6 +21,11 @@ import {
 } from "@sinkd/server";
 import { AlarmScheduler } from "./alarms.js";
 import { applyCors, resolveCorsHeaders } from "./cors.js";
+import {
+  RoomHibernator,
+  partyAllowsHibernate,
+  type HibernateRoom,
+} from "./hibernate.js";
 import { createLogger, type LogLevel, type SinkdLogger } from "./logger.js";
 import { formatPrometheusMetrics } from "./metrics-text.js";
 import { SlidingWindowLimiter } from "./rate-limit.js";
@@ -47,6 +53,13 @@ export interface SinkdRuntimeOptions {
   logLevel?: LogLevel;
   /** Alarm poll interval ms (default 1000; set 0 to disable) */
   alarmIntervalMs?: number;
+  /**
+   * Unload empty hibernatable rooms after this idle ms (default 30_000).
+   * Set 0 to disable. Parties with `static options.hibernate === false` stay warm.
+   */
+  roomIdleMs?: number;
+  /** Hibernation sweep interval ms (default 5000) */
+  hibernateIntervalMs?: number;
 }
 
 export interface SinkdRuntime {
@@ -56,9 +69,11 @@ export interface SinkdRuntime {
   close(): Promise<void>;
 }
 
-interface RoomHandle {
+interface RoomHandle extends HibernateRoom {
   server: Server;
   storage: MemoryStorage | SqliteStorage;
+  lastActive: number;
+  hibernate: boolean;
 }
 
 export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
@@ -91,6 +106,7 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
     rateLimited: 0,
     httpRequests: 0,
     alarms: 0,
+    hibernations: 0,
   };
   const alarms = new AlarmScheduler(
     () =>
@@ -109,9 +125,23 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
       error: log.error.bind(log),
     },
   );
+  const hibernator = new RoomHibernator(
+    () => rooms as Map<string, HibernateRoom>,
+    log,
+    {
+      idleMs: options.roomIdleMs ?? 30_000,
+      onHibernate: () => {
+        metrics.hibernations += 1;
+      },
+    },
+  );
 
   const httpServer = createHttpServer();
   const wss = new WebSocketServer({ noServer: true });
+
+  function touch(handle: RoomHandle): void {
+    handle.lastActive = Date.now();
+  }
 
   function classNameFor(party: string): string {
     return options.bindings?.[party] ?? partyNameToBinding(party);
@@ -131,7 +161,10 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
   ): RoomHandle {
     const key = partyRoomKey(party, room);
     const existing = rooms.get(key);
-    if (existing) return existing;
+    if (existing) {
+      touch(existing);
+      return existing;
+    }
 
     if (!opts?.skipRateLimit && !activationLimiter.allow(clientKey)) {
       metrics.rateLimited += 1;
@@ -159,7 +192,13 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
           );
 
     const server = new Party(room, storage, partyEnv);
-    const handle = { server, storage };
+    const handle: RoomHandle = {
+      key,
+      server,
+      storage,
+      lastActive: Date.now(),
+      hibernate: partyAllowsHibernate(Party),
+    };
     rooms.set(key, handle);
     if (!opts?.skipRateLimit) {
       metrics.roomActivations += 1;
@@ -305,7 +344,7 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
         }
 
         wss.handleUpgrade(req, socket, head, (ws) => {
-          void attachSocket(ws, handle.server, lobbyResult, url);
+          void attachSocket(ws, handle, lobbyResult, url);
         });
       } catch (error) {
         log.error("upgrade.failed", {
@@ -433,10 +472,11 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
 
   async function attachSocket(
     ws: WebSocket,
-    server: Server,
+    handle: RoomHandle,
     request: Request,
     url: URL,
   ): Promise<void> {
+    const { server } = handle;
     const id = url.searchParams.get(CONNECTION_ID_QUERY) || nanoid();
     const connection = await server.attachConnection({
       id,
@@ -450,10 +490,12 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
       },
     });
     metrics.connects += 1;
+    touch(handle);
     log.debug("ws.connect", { connectionId: id, room: server.name });
 
     ws.on("message", (data, isBinary) => {
       metrics.messages += 1;
+      touch(handle);
       const message = isBinary
         ? toArrayBuffer(data)
         : data.toString();
@@ -462,6 +504,7 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
 
     ws.on("close", (code, reason) => {
       metrics.disconnects += 1;
+      touch(handle);
       log.debug("ws.close", {
         connectionId: id,
         room: server.name,
@@ -504,17 +547,28 @@ export function createSinkdRuntime(options: SinkdRuntimeOptions): SinkdRuntime {
       });
       const interval = options.alarmIntervalMs ?? 1000;
       if (interval > 0) alarms.start(interval);
+      const idleMs = options.roomIdleMs ?? 30_000;
+      if (idleMs > 0) {
+        hibernator.start(options.hibernateIntervalMs ?? 5_000);
+      }
       log.info("runtime.listen", {
         url: listeningUrl,
         parties: Object.keys(options.parties),
         alarmIntervalMs: interval,
+        roomIdleMs: idleMs,
       });
       return listeningUrl;
     },
     async close() {
+      hibernator.stop();
       alarms.stop();
+      // 1012 → clients (partysocket) reconnect after ownership / process move
       for (const client of wss.clients) {
-        client.terminate();
+        try {
+          client.close(WS_CLOSE_SERVICE_RESTART, "sinkd restart");
+        } catch {
+          client.terminate();
+        }
       }
       await new Promise<void>((resolve) => {
         wss.close(() => resolve());

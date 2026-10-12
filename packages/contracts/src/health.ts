@@ -7,6 +7,7 @@ export interface HealthMetrics {
   readonly rateLimited: number;
   readonly httpRequests: number;
   readonly alarms: number;
+  readonly hibernations: number;
 }
 
 export interface HealthReport {
@@ -42,6 +43,7 @@ export function createHealthReport(input: {
       rateLimited: input.metrics?.rateLimited ?? 0,
       httpRequests: input.metrics?.httpRequests ?? 0,
       alarms: input.metrics?.alarms ?? 0,
+      hibernations: input.metrics?.hibernations ?? 0,
     },
   };
 }

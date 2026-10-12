@@ -45,6 +45,9 @@ export function formatPrometheusMetrics(input: {
     `# HELP sinkd_alarms_total Fired room alarms`,
     `# TYPE sinkd_alarms_total counter`,
     `sinkd_alarms_total ${input.metrics.alarms}`,
+    `# HELP sinkd_hibernations_total Idle rooms unloaded from memory`,
+    `# TYPE sinkd_hibernations_total counter`,
+    `sinkd_hibernations_total ${input.metrics.hibernations}`,
     "",
   ];
   return lines.join("\n");

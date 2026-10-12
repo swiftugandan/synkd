@@ -5,6 +5,7 @@ export {
   DEFAULT_PARTY_NAME,
   CONNECTION_ID_QUERY,
   PROPS_HEADER,
+  WS_CLOSE_SERVICE_RESTART,
 } from "./limits.js";
 
 export { SinkdErrorCode, SinkdError } from "./errors.js";

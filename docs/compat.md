@@ -9,7 +9,8 @@ Last updated: 2026-10-12 (celld 0.6.2 caps probed via Podman)
 | `/parties/:party/:room` | Yes | Yes | Yes via `routeSinkdRequest` |
 | `onConnect` / `onMessage` / `broadcast` | Yes | Yes | Yes |
 | Connection tags (≤9 / 256) | Native `getTags` | Userland on Connection | **Native** on celld 0.6.2 (`getTags` probed true) |
-| Hibernatable WebSockets | Yes | Process-local idle rooms | **Yes** — `acceptWebSocket` + `getWebSockets` probed true |
+| Hibernatable WebSockets | Yes | Idle empty rooms unload (`roomIdleMs`, close SQLite) | **Yes** — `acceptWebSocket` + `getWebSockets` probed true |
+| Close 1012 on move/restart | Ownership move | Runtime `close()` / hot-reload drain | Ownership move |
 | Per-room SQLite / KV | DO storage | `node:sqlite` files | DO storage via `DoStorageAdapter` |
 | `onAlarm` | Yes | Polled by `AlarmScheduler` (SQLite/memory `setAlarm`) | Delegates to DO `alarm()` |
 | Yjs / y-websocket | y-partykit | `@sinkd/y` `YjsServer` | Same party via `createDurableParty` |

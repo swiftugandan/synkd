@@ -591,6 +591,11 @@ a {
   border-color: rgba(255, 176, 32, 0.4);
 }
 
+.banner-info {
+  border-color: rgba(42, 212, 192, 0.45);
+  background: rgba(42, 212, 192, 0.1);
+}
+
 .pad-label {
   display: block;
   padding: 0.75rem 1.1rem 0;

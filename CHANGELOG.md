@@ -4,6 +4,8 @@
 
 ### Added
 
+- Node idle-room hibernation (`roomIdleMs`) with SQLite wake; WS close **1012** on runtime drain
+- Studio banners for service-restart (1012) vs plain disconnect
 - Production-shaped Caddy TLS ingress (`deploy/`) + local `tls internal` overlay
 - DO capability probe (`?sinkd_caps=1`) and hibernation `acceptWebSocket` when present
 - Live-verified on celld 0.6.2: `getTags` + hibernation APIs present (`tagStrategy=native-do-getTags`)

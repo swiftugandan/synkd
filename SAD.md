@@ -104,5 +104,5 @@ Confidence: high
 Residual risks:
   - Node SQLite semantics differ from DO storage structured-clone edge cases
 Known gaps:
-  - celld Worker adapter is a deploy target stub until Linux probe
+  - Node SQLite JSON serialization ≠ DO structured-clone edge cases (NG-5)
 ```

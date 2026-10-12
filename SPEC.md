@@ -86,5 +86,5 @@ Residual risks:
   - celld live path unverified on this host (no Darwin x86_64 binary; Docker daemon down)
   - PartyServer version drift vs partyserver@0.5.x method signatures
 Known gaps:
-  - celld native getTags probe still deferred on Darwin x86_64
+  - none blocking Node DX or celld fleet path (getTags probed on 0.6.2)
 ```

@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { createSinkdSocket } from "@sinkd/client";
+import {
+  createSinkdSocket,
+  WS_CLOSE_SERVICE_RESTART,
+} from "@sinkd/client";
 
 type RosterEntry = { id: string; name?: string };
 
@@ -51,6 +54,7 @@ export function Room({
   const [name, setName] = useState(displayName ?? "");
   const [messageCount, setMessageCount] = useState(0);
   const [lastHeartbeat, setLastHeartbeat] = useState<number | null>(null);
+  const [serviceRestart, setServiceRestart] = useState(false);
   const [reconnectNonce, setReconnectNonce] = useState(0);
   const listRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef<ReturnType<typeof createSinkdSocket> | null>(null);
@@ -67,13 +71,17 @@ export function Room({
     setStatus("connecting");
 
     const onOpen = () => {
+      setServiceRestart(false);
       setStatus("connected");
       if (displayName) {
         socket.send(JSON.stringify({ type: "presence", name: displayName }));
       }
       window.requestAnimationFrame(() => inputRef.current?.focus());
     };
-    const onClose = () => setStatus("disconnected");
+    const onClose = (event: CloseEvent) => {
+      if (event.code === WS_CLOSE_SERVICE_RESTART) setServiceRestart(true);
+      setStatus("disconnected");
+    };
     const onMessage = (event: MessageEvent) => {
       try {
         const data = JSON.parse(String(event.data)) as ChatMessage;
@@ -141,8 +149,13 @@ export function Room({
   return (
     <>
       {status === "disconnected" ? (
-        <div className="banner banner-warn" role="alert">
-          Connection lost. Messages will not deliver until you reconnect.
+        <div
+          className={`banner ${serviceRestart ? "banner-info" : "banner-warn"}`}
+          role="alert"
+        >
+          {serviceRestart
+            ? "Runtime restarted (close 1012). Reconnecting restores the sticky room."
+            : "Connection lost. Messages will not deliver until you reconnect."}
           <button
             type="button"
             className="btn btn-primary"

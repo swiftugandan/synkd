@@ -3,6 +3,7 @@ import {
   CONNECTION_ID_QUERY,
   DEFAULT_PARTY_NAME,
   DEFAULT_PARTY_PREFIX,
+  WS_CLOSE_SERVICE_RESTART,
 } from "@sinkd/contracts";
 
 export { PartySocket };
@@ -10,6 +11,7 @@ export {
   CONNECTION_ID_QUERY,
   DEFAULT_PARTY_NAME,
   DEFAULT_PARTY_PREFIX,
+  WS_CLOSE_SERVICE_RESTART,
 };
 
 export interface SinkdSocketOptions {

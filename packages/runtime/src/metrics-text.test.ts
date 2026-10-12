@@ -17,10 +17,12 @@ describe("formatPrometheusMetrics", () => {
         rateLimited: 0,
         httpRequests: 3,
         alarms: 1,
+        hibernations: 2,
       },
     });
     expect(text).toContain("sinkd_connections 4");
     expect(text).toContain("sinkd_messages_total 9");
+    expect(text).toContain("sinkd_hibernations_total 2");
     expect(text).toContain('sinkd_info{version="0.1.0"} 1');
   });
 });

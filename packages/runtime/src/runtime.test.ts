@@ -1,3 +1,6 @@
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import WebSocket from "ws";
 import { Server } from "@sinkd/server";
@@ -42,6 +45,7 @@ describe("createSinkdRuntime", () => {
         storageDir: null,
         logLevel: "error",
         alarmIntervalMs: 0,
+        roomIdleMs: 0,
         onBeforeConnect: (req) => {
           const token = new URL(req.url).searchParams.get("token");
           if (token !== "secret") {
@@ -88,6 +92,7 @@ describe("createSinkdRuntime", () => {
       storageDir: null,
       logLevel: "error",
       alarmIntervalMs: 0,
+      roomIdleMs: 0,
       onBeforeConnect: (req) => {
         if (!new URL(req.url).searchParams.get("token")) {
           return new Response("Unauthorized", { status: 401 });
@@ -110,6 +115,7 @@ describe("createSinkdRuntime", () => {
       storageDir: null,
       logLevel: "error",
       alarmIntervalMs: 0,
+      roomIdleMs: 0,
     });
     const base = await runtime.listen();
     const port = Number(new URL(base).port);
@@ -146,6 +152,7 @@ describe("createSinkdRuntime", () => {
       storageDir: null,
       logLevel: "error",
       alarmIntervalMs: 50,
+      roomIdleMs: 0,
     });
     const base = await runtime.listen();
     const port = Number(new URL(base).port);
@@ -168,6 +175,55 @@ describe("createSinkdRuntime", () => {
     const metrics = await (await fetch(`http://127.0.0.1:${port}/metrics`)).text();
     expect(metrics).toContain("sinkd_alarms_total");
     expect(metrics).toMatch(/sinkd_alarms_total [1-9]/);
+  });
+
+  it("hibernates empty rooms and restores SQLite state on wake", async () => {
+    class Persist extends Server {
+      static override options = { hibernate: true };
+      override async onRequest(): Promise<Response> {
+        const n = (await this.storage.get<number>("n")) ?? 0;
+        await this.storage.put("n", n + 1);
+        return Response.json({ n: n + 1 });
+      }
+    }
+
+    const dir = mkdtempSync(join(tmpdir(), "sinkd-hib-"));
+    try {
+      runtime = createSinkdRuntime({
+        parties: { main: Persist },
+        host: "127.0.0.1",
+        port: 0,
+        storageDir: dir,
+        logLevel: "error",
+        alarmIntervalMs: 0,
+        roomIdleMs: 40,
+        hibernateIntervalMs: 20,
+      });
+      const base = await runtime.listen();
+      const port = Number(new URL(base).port);
+
+      const first = await fetch(`http://127.0.0.1:${port}/parties/main/hib`);
+      expect(((await first.json()) as { n: number }).n).toBe(1);
+
+      const deadline = Date.now() + 3000;
+      let rooms = 1;
+      while (Date.now() < deadline) {
+        const health = (await (
+          await fetch(`http://127.0.0.1:${port}/healthz`)
+        ).json()) as { rooms: number; metrics: { hibernations: number } };
+        rooms = health.rooms;
+        if (rooms === 0 && health.metrics.hibernations >= 1) break;
+        await new Promise((r) => setTimeout(r, 30));
+      }
+      expect(rooms).toBe(0);
+
+      const second = await fetch(`http://127.0.0.1:${port}/parties/main/hib`);
+      expect(((await second.json()) as { n: number }).n).toBe(2);
+    } finally {
+      await runtime?.close();
+      runtime = undefined;
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });
 
