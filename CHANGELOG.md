@@ -4,6 +4,7 @@
 
 ### Added
 
+- `sinkd dev` hot-reloads party modules and `sinkd.json` (disable with `--no-watch`)
 - `@sinkd/runtime` structured logging (`createLogger`, `SINKD_LOG_LEVEL`, `SINKD_LOG_JSON=1`)
 - Node alarm scheduler that polls room storage and invokes `Server.onAlarm`
 - Prometheus text `/metrics` scrape endpoint

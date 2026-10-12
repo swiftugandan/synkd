@@ -1,7 +1,6 @@
 import { execSync } from "node:child_process";
 import { mkdirSync, writeFileSync, existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
-import { pathToFileURL } from "node:url";
 import { Command } from "commander";
 import { createLobbyAuth } from "@sinkd/auth";
 import {
@@ -10,8 +9,9 @@ import {
   toWranglerJsonc,
   type SinkdConfig,
 } from "@sinkd/config";
-import { createSinkdRuntime } from "@sinkd/runtime";
-import type { PartyClass } from "@sinkd/server";
+import { createSinkdRuntime, type SinkdRuntime } from "@sinkd/runtime";
+import { loadParties } from "./load-parties.js";
+import { watchPartySources } from "./watch-parties.js";
 
 export async function runCli(argv: string[]): Promise<void> {
   const program = new Command();
@@ -33,13 +33,24 @@ export async function runCli(argv: string[]): Promise<void> {
     .option("-c, --config <path>", "path to sinkd.json", "sinkd.json")
     .option("--root <dir>", "project root (contains sinkd.json)")
     .option("-p, --port <port>", "port", (v) => Number(v))
-    .action(async (opts: { config: string; root?: string; port?: number }) => {
-      const root = resolve(opts.root ?? process.cwd());
-      const configPath = opts.root
-        ? resolve(root, "sinkd.json")
-        : resolve(opts.config);
-      await runDev(configPath, opts.port);
-    });
+    .option("--no-watch", "disable hot reload of party modules")
+    .action(
+      async (opts: {
+        config: string;
+        root?: string;
+        port?: number;
+        watch?: boolean;
+      }) => {
+        const root = resolve(opts.root ?? process.cwd());
+        const configPath = opts.root
+          ? resolve(root, "sinkd.json")
+          : resolve(opts.config);
+        await runDev(configPath, {
+          port: opts.port,
+          watch: opts.watch !== false,
+        });
+      },
+    );
 
   program
     .command("deploy")
@@ -186,76 +197,108 @@ Connect with partysocket and \`?token=dev-token\`.
   console.log(`  sinkd dev --root ${dir}`);
 }
 
-async function runDev(configPath: string, portOverride?: number): Promise<void> {
+async function runDev(
+  configPath: string,
+  opts: { port?: number; watch?: boolean } = {},
+): Promise<void> {
   if (!existsSync(configPath)) {
     throw new Error(`Missing config: ${configPath} (run sinkd init)`);
   }
   const root = dirname(configPath);
-  const config = loadSinkdConfig(configPath);
-  const parties: Record<string, PartyClass> = {};
 
   const tsx = (await import("tsx/esm/api")) as {
     register: () => () => void;
   };
   tsx.register();
 
-  for (const [party, partyConfig] of Object.entries(config.parties)) {
-    const entryPath = resolve(root, partyConfig.entry);
-    const mod = (await import(pathToFileURL(entryPath).href)) as Record<
-      string,
-      PartyClass
-    >;
-    const exportName = partyConfig.export ?? "default";
-    const Party = mod[exportName] ?? mod.default;
-    if (!Party) {
-      throw new Error(`Party export "${exportName}" not found in ${entryPath}`);
+  let runtime: SinkdRuntime | undefined;
+  let stopWatch: (() => void) | undefined;
+  let reloading = false;
+  const watchEnabled = opts.watch !== false;
+
+  const boot = async (reason?: string) => {
+    const config = loadSinkdConfig(configPath);
+    const parties = await loadParties(config, root);
+    const lobby = createLobbyAuth({
+      token: config.auth?.token,
+      jwtSecret: config.auth?.jwtSecret,
+      origins: config.auth?.origins,
+    });
+
+    const next = createSinkdRuntime({
+      parties,
+      bindings: bindingMap(config),
+      prefix: config.prefix,
+      host: config.host ?? "127.0.0.1",
+      port: opts.port ?? config.port ?? 8787,
+      storageDir:
+        config.storageDir === undefined
+          ? join(root, ".sinkd/rooms")
+          : config.storageDir,
+      cors: config.cors ?? true,
+      maxConnectionsPerRoom: config.maxConnectionsPerRoom,
+      onBeforeConnect: lobby,
+      onBeforeRequest: lobby,
+    });
+
+    // Close first to free the port (fixed port → would EADDRINUSE otherwise).
+    const previous = runtime;
+    runtime = undefined;
+    if (previous) await previous.close();
+    runtime = next;
+    const url = await next.listen();
+
+    const partyNames = Object.keys(config.parties);
+    const primary = partyNames[0] ?? "main";
+    if (reason) {
+      console.log(`sinkd reloaded (${reason}) → ${url}`);
+    } else {
+      console.log(`sinkd listening on ${url}`);
+      console.log(`  health:  ${url}/healthz`);
+      console.log(`  metrics: ${url}/metrics`);
+      console.log(`  party:   ${url}/parties/${primary}/<room>`);
+      if (partyNames.length > 1) {
+        console.log(`  parties: ${partyNames.join(", ")}`);
+      }
+      console.log(
+        watchEnabled
+          ? `  watch:   on (party sources + sinkd.json)`
+          : `  watch:   off`,
+      );
+      if (config.auth?.token) {
+        console.log(
+          `  auth:    ?token=${config.auth.token} (or Authorization: Bearer …)`,
+        );
+      }
+      if (config.auth?.jwtSecret) {
+        console.log(`  auth:    JWT (HS256) via ?token= or Bearer`);
+      }
     }
-    parties[party] = Party;
-  }
+  };
 
-  const lobby = createLobbyAuth({
-    token: config.auth?.token,
-    jwtSecret: config.auth?.jwtSecret,
-    origins: config.auth?.origins,
-  });
+  await boot();
 
-  const runtime = createSinkdRuntime({
-    parties,
-    bindings: bindingMap(config),
-    prefix: config.prefix,
-    host: config.host ?? "127.0.0.1",
-    port: portOverride ?? config.port ?? 8787,
-    storageDir:
-      config.storageDir === undefined
-        ? join(root, ".sinkd/rooms")
-        : config.storageDir,
-    cors: config.cors ?? true,
-    maxConnectionsPerRoom: config.maxConnectionsPerRoom,
-    onBeforeConnect: lobby,
-    onBeforeRequest: lobby,
-  });
-
-  const url = await runtime.listen();
-  const partyNames = Object.keys(config.parties);
-  const primary = partyNames[0] ?? "main";
-  console.log(`sinkd listening on ${url}`);
-  console.log(`  health:  ${url}/healthz`);
-  console.log(`  metrics: ${url}/metrics`);
-  console.log(`  party:   ${url}/parties/${primary}/<room>`);
-  if (partyNames.length > 1) {
-    console.log(`  parties: ${partyNames.join(", ")}`);
-  }
-  if (config.auth?.token) {
-    console.log(
-      `  auth:    ?token=${config.auth.token} (or Authorization: Bearer …)`,
-    );
-  }
-  if (config.auth?.jwtSecret) {
-    console.log(`  auth:    JWT (HS256) via ?token= or Bearer`);
+  if (watchEnabled) {
+    const config = loadSinkdConfig(configPath);
+    stopWatch = watchPartySources(config, root, configPath, (reason) => {
+      if (reloading) return;
+      reloading = true;
+      void boot(reason)
+        .catch((error) => {
+          console.error(
+            "sinkd reload failed:",
+            error instanceof Error ? error.message : error,
+          );
+        })
+        .finally(() => {
+          reloading = false;
+        });
+    });
   }
 
   const shutdown = async () => {
-    await runtime.close();
+    stopWatch?.();
+    await runtime?.close();
     process.exit(0);
   };
   process.on("SIGINT", () => void shutdown());

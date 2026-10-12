@@ -14,7 +14,7 @@ Browser (partysocket) → /parties/:party/:room → room actor → durable stora
 pnpm install
 pnpm build
 pnpm doctor
-pnpm dev
+pnpm dev          # hot-reloads party sources; --no-watch to disable
 ```
 
 In another terminal:
