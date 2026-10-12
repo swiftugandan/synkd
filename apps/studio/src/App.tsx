@@ -322,7 +322,7 @@ export function App() {
 
       <p className="foot">
         {backend === "celld"
-          ? "celld via Podman (pnpm celld:spike / SYNKD_SPIKE_KEEP=1)"
+          ? "celld via Podman/Docker (pnpm celld:dev · pnpm celld:stop)"
           : "Node runtime locally"}{" "}
         · host {host}
         {" · "}

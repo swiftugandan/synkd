@@ -8,7 +8,7 @@ synkd is a self-hosted PartyKit-compatible realtime room server. It exposes the 
 
 ## Current phase
 
-Trunk: Node path + celld adapter live-verified (incl. getTags / hibernation caps on 0.6.2). Prefer Podman (`pnpm celld:spike` / `./scripts/compose.sh`).
+Trunk: Node path + celld adapter live-verified (incl. getTags / hibernation caps on 0.6.2). Prefer Podman (`pnpm celld:dev` / `pnpm fleet:up`).
 
 ## Quick status
 

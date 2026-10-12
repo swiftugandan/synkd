@@ -27,14 +27,16 @@ synkd aims to keep PartyKit-shaped party code portable. Some platform features d
 ## Probe live capabilities
 
 ```sh
-pnpm celld:spike
+pnpm celld:dev
 ```
 
-Or:
+Then:
 
 ```sh
-curl -s "http://127.0.0.1:9876/parties/main/probe?token=dev-token&synkd_caps=1"
+curl -s "http://127.0.0.1:9876/parties/main/healthz?token=dev-token&synkd_caps=1"
 ```
+
+Setup guide: [Run on celld](/operators/celld).
 
 Look for `acceptWebSocket`, `getWebSockets`, and `getTags` in the response.
 
@@ -48,4 +50,4 @@ Look for `acceptWebSocket`, `getWebSockets`, and `getTags` in the response.
 ## What to do next
 
 - [Deploy with TLS](/operators/deploy) when you are ready for a fleet
-- [celld fleets](/operators/celld-fleets) for container topology
+- [Run on celld](/operators/celld) for local host and fleet setup

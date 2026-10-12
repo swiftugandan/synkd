@@ -52,9 +52,14 @@ curl -s -H "Authorization: Bearer dev-admin" \
 
 Projects created with `synkd init` use the same defaults. Change them before any shared or public deploy. See [Security](./security).
 
+## Optional: Durable Objects via celld
+
+Everyday DX uses the Node runtime above. For a local Durable Object host (or a production fleet), see [Run on celld](./celld) — including what celld is and `pnpm celld:dev`.
+
 ## What to do next
 
 - [Configure a fleet](./configure)
 - [Use the Console](./console)
 - [Monitor health](./monitor)
+- [Run on celld](./celld)
 - Developers: [CLI](/developers/cli)

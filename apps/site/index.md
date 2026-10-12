@@ -17,7 +17,7 @@ features:
   - title: Familiar party URLs
     details: Keep /parties/:party/:room and partysocket clients. Move off hosted PartyKit without rewriting your apps.
   - title: Local Node, fleet when ready
-    details: Develop on the Node runtime. Deploy the same party code to a celld fleet with TLS at the edge.
+    details: Develop on the Node runtime. Run the same party code on celld for Durable Objects — locally or as a TLS fleet.
   - title: Clear operator tools
     details: Use the Console and /v1 control API for rooms, health, metrics, and forced hibernation.
 ---
@@ -47,7 +47,7 @@ You host the process or fleet. There is no synkd cloud control plane in v1.
 
 - Node.js 22 or later to develop and run the Node runtime
 - pnpm to install this monorepo
-- Optional: Podman or Docker for celld fleets on Linux containers
+- Optional: Podman or Docker (or a native [celld](https://celld.dev) binary) for Durable Object hosting — see [Run on celld](/operators/celld)
 
 ## Try it locally
 
@@ -68,3 +68,5 @@ Then open:
 If you are writing party code or a client app, read [Get started for developers](/developers/get-started). To scaffold a project, use the [CLI](/developers/cli).
 
 If you are installing, securing, or monitoring a fleet, read [Get started for operators](/operators/get-started).
+
+If you need Durable Objects (local or multi-node), read [Run on celld](/operators/celld) — what celld is, `pnpm celld:dev`, and production deploy.

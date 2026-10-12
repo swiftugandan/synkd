@@ -62,13 +62,29 @@ The CLI links `@synkd/*` from this monorepo so `dev` works before npm publish. G
 | `@synkd/control` | Operator control API |
 | `@synkd/auth` | Guest and admin gates |
 | `@synkd/adapter-celld` | celld Durable Object host |
-| `@synkd/cli` | `synkd init` / `dev` / `deploy` / `doctor` |
+| `@synkd/cli` | `synkd init` / `dev` / `deploy` / `celld` / `doctor` |
 | `@synkd/y` | Yjs / y-websocket party base |
 | `@synkd/site` | Marketing + docs site |
 | `@synkd/studio` | Guest demo |
 | `@synkd/console` | Operator Console |
 
 Full package list: site → [Packages](./apps/site/developers/packages.md).
+
+## celld (Durable Objects host)
+
+[celld](https://celld.dev) runs Workers + Durable Objects on your machines. synkd parties use Node by default; switch to celld when you need DO storage or a multi-node fleet.
+
+```sh
+pnpm celld:dev          # local celld on :9876 (Podman/Docker)
+# Studio: http://127.0.0.1:5173/?backend=celld
+pnpm celld:stop
+
+export CELLD_BUCKET=s3://your-bucket
+pnpm celld:deploy       # push worker artifact
+pnpm fleet:up           # celld nodes + Caddy
+```
+
+Guide: [Run on celld](./apps/site/operators/celld.md) · `synkd celld info`
 
 ## Ops pointers
 

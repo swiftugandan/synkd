@@ -7,9 +7,14 @@ The `synkd` CLI creates projects and runs the Node runtime.
 | Command | What it does |
 | --- | --- |
 | `synkd init [dir]` | Create a project with a Chat party and `synkd.json` |
-| `synkd doctor` | Check Node, config, party entries, and package links |
-| `synkd dev` | Serve parties on HTTP and WebSocket |
-| `synkd deploy` | Write `wrangler.jsonc` and print celld deploy steps |
+| `synkd doctor` | Check Node, config, party entries, package links, celld host |
+| `synkd dev` | Serve parties on HTTP and WebSocket (Node) |
+| `synkd deploy` | Write `wrangler.jsonc` and print celld next steps |
+| `synkd celld info` | Explain what celld is and how synkd uses it |
+| `synkd celld prepare` | Refresh `wrangler.jsonc` for a project |
+| `synkd celld dev` | Start a local celld node (Podman/Docker) |
+| `synkd celld stop` | Stop the local celld container |
+| `synkd celld deploy` | Push the worker to `CELLD_BUCKET` |
 
 ## Create a project
 
@@ -71,16 +76,22 @@ You do not need a separate `pnpm install` in the new project for local CLI use f
 
 When packages are published, you can install them from npm like any other dependency. A real install in `node_modules` is left alone; the CLI does not overwrite it.
 
-## Deploy hint
+## Run on celld
+
+celld hosts the same parties as Durable Objects. You need Podman/Docker or a native [celld](https://celld.dev) binary.
 
 ```sh
-pnpm --filter @synkd/cli exec tsx src/bin.ts deploy --root ./my-rooms
+pnpm --filter @synkd/cli exec tsx src/bin.ts celld info
+pnpm --filter @synkd/cli exec tsx src/bin.ts celld prepare --root ./my-rooms
+# From the synkd monorepo (container scripts):
+pnpm celld:dev
 ```
 
-That refreshes `wrangler.jsonc`. Follow the printed steps for Podman or a native `celld deploy`. See [celld fleets](/operators/celld-fleets).
+`synkd deploy` only refreshes `wrangler.jsonc` and prints next steps. Full guide: [Run on celld](/operators/celld).
 
 ## What to do next
 
 - [Write a party](./write-a-party)
 - [Connect clients](./connect-clients)
 - [Get started](./get-started) for Studio and the full example stack
+- Operators: [Run on celld](/operators/celld)

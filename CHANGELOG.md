@@ -2,11 +2,22 @@
 
 ## Unreleased
 
+## 0.1.3 — 2026-10-12
+
+### Changed
+
+- Replaced experimental `celld:spike` with first-class setup: `celld:dev`, `celld:stop`, `celld:deploy`, `celld:smoke`, `fleet:up`
+- Added `synkd celld` CLI (`info` / `prepare` / `dev` / `stop` / `deploy`) and operator guide [Run on celld](./apps/site/operators/celld.md)
+
+### Docs
+
+- Explain what celld is, prerequisites (Podman/Docker or native binary), local vs production fleet paths
+
 ## 0.1.2 — 2026-10-12
 
 ### Fixed
 
-- Studio HealthStrip: probe celld via a party route (`/` is 404), so `?backend=celld` no longer reports offline when the spike is up
+- Studio HealthStrip: probe celld via a party route (`/` is 404), so `?backend=celld` no longer reports offline when celld is up
 
 ## 0.1.1 — 2026-10-12
 

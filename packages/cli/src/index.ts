@@ -17,6 +17,7 @@ import {
 } from "./link-packages.js";
 import { loadParties } from "./load-parties.js";
 import { watchPartySources } from "./watch-parties.js";
+import { registerCelldCommands } from "./celld-cmd.js";
 
 export async function runCli(argv: string[]): Promise<void> {
   const program = new Command();
@@ -25,6 +26,7 @@ export async function runCli(argv: string[]): Promise<void> {
     .description("Self-hosted PartyKit-compatible realtime rooms")
     .version("0.1.0");
 
+  registerCelldCommands(program);
   program
     .command("init")
     .argument("[dir]", "project directory", ".")
@@ -209,6 +211,7 @@ Guest token: \`dev-token\`. Admin token: \`dev-admin\`.
   }
   console.log(`  synkd doctor --root ${dir}`);
   console.log(`  synkd dev --root ${dir}`);
+  console.log(`  synkd celld info          # Durable Objects host (optional)`);
 }
 
 async function runDev(
@@ -342,13 +345,23 @@ function deploy(configPath: string): void {
   writeFileSync(wranglerPath, toWranglerJsonc(config));
   console.log(`Wrote ${wranglerPath}`);
   console.log(`
-Deploy to celld (podman preferred, docker fallback):
+Prepared celld worker config (wrangler.jsonc + src/worker.ts).
 
-  ./scripts/celld-spike.sh
-  ./scripts/compose.sh up -d   # set CELLD_BUCKET first
+What is celld? Workers + Durable Objects on your machines — https://celld.dev
+  synkd celld info
 
-On Linux/ARM64 with a native binary:
-  celld deploy ${root}
+Local Durable Object host (Podman/Docker):
+  synkd celld dev --root ${root}
+  # or from this monorepo: pnpm celld:dev
+
+Push to an object-store bucket, then start the fleet:
+  export CELLD_BUCKET=s3://your-bucket
+  synkd celld deploy --root ${root}
+  ./scripts/compose.sh up -d
+
+Native celld binary (Linux/ARM64):
+  curl -fsSL https://celld.dev/install.sh | sh
+  celld deploy ${root} --bucket "$CELLD_BUCKET"
 `);
 }
 
@@ -422,14 +435,38 @@ function doctor(configPath: string): void {
     detail: "@synkd/runtime (Node)",
   });
 
-  let celldDetail = "not on PATH (use Docker / Linux / ARM64)";
+  let celldDetail =
+    "not on PATH — use Podman/Docker (pnpm celld:dev) or install from https://celld.dev";
   try {
-    const out = execSync("celld --version", { encoding: "utf8" }).trim();
+    const out = execSync("celld --version", {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    }).trim();
     celldDetail = out || "found";
   } catch {
-    // expected on Darwin x86_64
+    // expected on Darwin without a native binary
   }
   checks.push({ ok: true, label: "celld binary", detail: celldDetail });
+
+  let containerDetail = "neither podman nor docker usable";
+  let containerOk = false;
+  for (const cli of ["podman", "docker"] as const) {
+    try {
+      execSync(`${cli} info`, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+      containerDetail = cli;
+      containerOk = true;
+      break;
+    } catch {
+      // try next
+    }
+  }
+  checks.push({
+    ok: true,
+    label: "celld host runtime",
+    detail: containerOk
+      ? `${containerDetail} — pnpm celld:dev / synkd celld info`
+      : `${containerDetail} — Node-only DX is fine; for Durable Objects install Podman or see synkd celld info`,
+  });
 
   for (const check of checks) {
     const mark = check.ok ? "ok" : "!!";

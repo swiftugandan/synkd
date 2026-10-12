@@ -30,12 +30,12 @@ export SYNKD_SITE=rooms.example.com
 pnpm --filter @synkd/cli exec tsx src/bin.ts deploy \
   --config apps/parties/synkd.json
 
-CELLD_BUCKET="$CELLD_BUCKET" pnpm celld:spike
+CELLD_BUCKET="$CELLD_BUCKET" pnpm celld:deploy
 
-SYNKD_SITE=rooms.example.com ./scripts/compose.sh up -d
+SYNKD_SITE=rooms.example.com pnpm fleet:up
 ```
 
-Caddy uses a sticky cookie named `synkd_lb`.
+Caddy uses a sticky cookie named `synkd_lb`. New to celld? Start with [Run on celld](./celld).
 
 ## Local lab with MinIO
 
@@ -77,5 +77,5 @@ More detail lives in the repo at `deploy/README.md`.
 
 ## What to do next
 
-- [celld fleets](./celld-fleets)
+- [Run on celld](./celld)
 - [Security](./security)

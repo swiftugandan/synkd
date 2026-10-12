@@ -30,9 +30,10 @@ Last updated: 2026-10-12 (celld 0.6.2 caps probed via Podman)
 ## Capability probe
 
 ```sh
-pnpm celld:spike
+pnpm celld:dev
 # writes .synkd/celld-caps.json and prints:
 # GET /parties/main/<room>?token=…&synkd_caps=1
+# stop with: pnpm celld:stop
 ```
 
 | Field | Meaning |

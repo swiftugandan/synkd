@@ -74,5 +74,5 @@ jobs:
           sudo apt-get update -y
           sudo apt-get install -y podman
           podman info
-      - name: celld spike (HTTP + WS)
-        run: pnpm celld:spike
+      - name: celld smoke (HTTP + WS)
+        run: pnpm celld:smoke

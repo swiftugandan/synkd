@@ -20,5 +20,5 @@ MinIO is fine for labs. Do not treat it as production durability.
 ## What to do next
 
 - [Deploy with TLS](/operators/deploy)
-- [celld fleets](/operators/celld-fleets)
+- [Run on celld](/operators/celld)
 - [System context](./system-context)

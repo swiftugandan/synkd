@@ -25,11 +25,13 @@ export SYNKD_SITE=rooms.example.com   # public DNS → this host
 
 # Build + push worker artifact
 pnpm --filter @synkd/cli exec tsx src/bin.ts deploy --config apps/parties/synkd.json
-CELLD_BUCKET="$CELLD_BUCKET" pnpm celld:spike   # runs `celld deploy` in-container
+CELLD_BUCKET="$CELLD_BUCKET" pnpm celld:deploy
 
 # Fleet + Caddy (Let's Encrypt via SYNKD_SITE)
-SYNKD_SITE=rooms.example.com ./scripts/compose.sh up -d
+SYNKD_SITE=rooms.example.com pnpm fleet:up
 ```
+
+New to celld? See [Run on celld](../apps/site/operators/celld.md).
 
 Point DNS A/AAAA for `SYNKD_SITE` at the Caddy host. Caddy terminates TLS and load-balances to both celld nodes with a sticky cookie (`synkd_lb`).
 
@@ -57,14 +59,14 @@ CELLD_BUCKET=s3://synkd-cells \
   pnpm fleet:smoke
 ```
 
-Open `https://localhost/` (Caddy `tls internal`). Studio can target `?backend=celld` once a public listener is mapped to `:9876` via `pnpm celld:spike`.
+Open `https://localhost/` (Caddy `tls internal`). For a single-node local host without compose, use `pnpm celld:dev` (:9876) and Studio `?backend=celld`.
 
 ## Caps probe
 
 After a celld listener is up:
 
 ```sh
-curl -s "http://127.0.0.1:9876/parties/main/probe?token=dev-token&synkd_caps=1"
+curl -s "http://127.0.0.1:9876/parties/main/healthz?token=dev-token&synkd_caps=1"
 ```
 
 Reports whether hibernation `acceptWebSocket` / `getWebSockets` exist on the DO state (native tag routing vs synkd userland tags).
