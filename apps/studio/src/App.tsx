@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { HealthStrip } from "./HealthStrip";
 import { Room } from "./Room";
 
 const DEFAULT_TOKEN = "dev-token";
@@ -170,6 +171,7 @@ export function App() {
             </code>
             <span className="hero-backend"> via {backend}</span>
           </p>
+          <HealthStrip backend={backend} />
         </section>
 
         <section className="room-stage" id="room" aria-label="Live room">

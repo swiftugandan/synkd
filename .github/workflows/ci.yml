@@ -36,6 +36,12 @@ jobs:
             sleep 0.5
           done
           pnpm --filter @sinkd/runtime exec node ./scripts/ws-smoke.mjs http://127.0.0.1:8787
+      - name: Install Playwright Chromium
+        run: pnpm --filter @sinkd/studio exec playwright install --with-deps chromium
+      - name: Studio e2e
+        run: pnpm test:e2e
+        env:
+          CI: "true"
 
   celld-podman:
     runs-on: ubuntu-latest

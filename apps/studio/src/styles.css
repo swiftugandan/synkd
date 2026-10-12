@@ -224,6 +224,35 @@ a {
   color: var(--foam-dim);
 }
 
+.health-strip {
+  margin-top: 1.1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--foam-dim);
+}
+
+.health-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--foam-dim);
+}
+
+.health-strip[data-state="up"] .health-dot {
+  background: var(--signal);
+}
+
+.health-strip[data-state="down"] .health-dot {
+  background: var(--danger);
+}
+
+.health-strip[data-state="checking"] .health-dot {
+  background: var(--warn);
+}
+
 .backend-field {
   border: 1px solid var(--line);
   margin: 0;

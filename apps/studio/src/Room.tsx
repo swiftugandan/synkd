@@ -142,7 +142,12 @@ export function Room({
             <span className="room-stat"> · {messageCount} persisted</span>
           ) : null}
         </div>
-        <div className="status" data-state={status} role="status">
+        <div
+          className="status"
+          data-state={status}
+          role="status"
+          aria-label="Connection"
+        >
           <span className="status-dot" aria-hidden="true" />
           {status}
         </div>
